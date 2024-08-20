@@ -1,0 +1,60 @@
+  .teamList {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+  }
+
+  .teamItem {
+      opacity: 0;
+      margin: 0.8rem 0;
+      padding: 0.5rem;
+      background-color: #FFFFFF;
+      border-radius: 0.1rem;
+      box-shadow: 0px 2px 1px rgba(0, 0, 0, 0.25);
+      width: 100%;
+      transform: translateX(-100%);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      animation: fadeInFromLeft 0.6s ease forwards;
+  }
+
+  .memberRole {
+      align-self: self-end;
+  }
+
+  .teamContent {
+      max-height: 100%;
+      /* Set the fixed height you want for the panel content */
+      max-width: 100%;
+      /* Add a vertical scroll bar when content exceeds the panel's height */
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-left: 1%;
+  }
+
+  .teamItem {
+      list-style: none;
+      padding: 10px;
+      max-width: 90%;
+  }
+
+  .teamMember {
+      display: flex;
+      justify-content: space-between;
+      max-width: 90%;
+  }
+
+  .memberInfo {
+      display: flex;
+      align-items: center;
+  }
+
+  .name {
+      margin-left: 10px;
+      /* Add some space between the avatar and the name */
+  }
+
+  .role {
+      text-align: right;
+      /* Align the role to the right */
+  }
+  

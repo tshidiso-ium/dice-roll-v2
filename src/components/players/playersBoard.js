@@ -1,0 +1,60 @@
+import React, { useState, useEffect } from 'react';
+import teamJson from './playerList.json'; // Importing JSON data for team members
+import teamstyle from "./Team.css"; // Importing CSS file for styling
+import Avatar from '@mui/material/Avatar'; // Importing Avatar component from MUI
+import Stack from '@mui/material/Stack'; // Importing Stack component from MUI
+import Chip from '@mui/material/Chip'; // Importing Chip component from MUI
+import { Leaderboard } from '@mui/icons-material';
+
+// Functional component to display team members
+const Playersboard = () => {
+
+    return (
+        <div className="teamContent mt-2"> {/* Container for the team content */}
+            <div className="teamList"> 
+            <div className='relativ bg-opacity-75 min-w-[100%]'>
+                <div className={`grid grid-cols-5 h-[35px] space-y-0 w-full mt-0`}>
+                        <label htmlFor="fullname" className="text-balance pl-[2%] content-center text-l">Pos</label>
+                    <label htmlFor="fullname" className="text-balance pl-[2%] content-center text-l">Player</label>
+                                        <div></div>
+                    <label htmlFor="position" className="text-balance pl-[2%] content-center text-l">Score</label>
+                    <label htmlFor="Department" className="text-balance pl-[2%] content-center text-l">status</label>
+                </div>
+
+            </div>
+            <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent mb-3 h-[1px] w-full" />
+                <div className='relativ bg-opacity-75 min-w-[100%]'>
+                {/* Mapping through the teamJson array to render team members */}
+                    {teamJson.map((member, index) => (
+    
+                    <div className={`grid grid-cols-5 h-[35px] space-y-0 w-full mt-0`}>
+                        <div className="text-balance content-center text-sm">
+                            {1+ index}.                                    
+                        </div>
+
+                        <div className="flex col-span-2 text-balance content-center text-sm">       
+                             <Avatar
+                                alt={member.first_name} // Alt text for the Avatar
+                                src={member.picture} // Source of the Avatar image
+                                sx={{ width: 24, height: 24 }} // Styling for the Avatar
+                            />                           
+                           <labe className={`pl-2 text-sm`}> {member.first_name} {member.last_name}</labe>
+                        </div>
+                        <label htmlFor="position" className="text-balance pl-[1%] content-center text-sm">{member.score}</label>
+                        <label htmlFor="Department" className="text-balance pl-[1%] content-center text-sm">
+                            {member.status === "Rolling" ? 
+                            
+                            <Chip label={member.status}  size="small" color={member.chip_colour} variant="outlined"/>
+                            :
+                            <>
+                            </>
+                            }
+                        </label>
+                    </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+export default Playersboard; // Exporting the TeamMembers component

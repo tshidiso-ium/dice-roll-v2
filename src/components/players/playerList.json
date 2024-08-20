@@ -1,0 +1,83 @@
+[
+    {
+      "first_name": "Andrew",
+      "last_name": "Johnston",
+      "score": "10",
+      "role": "Top Trader",
+      "chip_colour": "success",
+      "status" : "Rolling",
+      "picture": "https://mighty.tools/mockmind-api/content/human/75.jpg"
+    },
+    {
+      "first_name": "Anna",
+      "last_name": "Atkinsons",
+      "score": "5",
+      "role": "Manager",
+      "status" : "not rolling",
+      "chip_colour": "primary",
+      "picture": "https://mighty.tools/mockmind-api/content/human/66.jpg"
+    },
+    {
+      "first_name": "Mark",
+      "last_name": "Atkinsons",
+      "role": "Top Trader",
+      "score": "30",
+      "status" : "not rolling",
+      "chip_colour": "success",
+      "picture": "https://mighty.tools/mockmind-api/content/human/62.jpg"
+    },
+    {
+      "first_name": "Johanna",
+      "last_name": "Tairons",
+      "role": "Manager",
+      "score": "6",
+      "status" : "not rolling",
+      "chip_colour": "primary",
+      "picture": "https://mighty.tools/mockmind-api/content/human/60.jpg"
+    },
+    {
+      "first_name": "Emily",
+      "last_name": "Johnson",
+      "role": "Top Trader",
+      "score": "12",
+      "status" : "not rolling",
+      "chip_colour": "success",
+      "picture": "https://mighty.tools/mockmind-api/content/human/58.jpg"
+    },
+    {
+      "first_name": "Daniel",
+      "last_name": "Martinez",
+      "role": "Manager",
+      "score": "15",
+      "status" : "not rolling",
+      "chip_colour": "primary",
+      "picture": "https://mighty.tools/mockmind-api/content/human/57.jpg"
+    },
+    {
+      "first_name": "Sophia",
+      "last_name": "Lee",
+      "role": "Top Trader",
+      "score": "10",
+      "status" : "not rolling",
+      "chip_colour": "success",
+      "picture": "https://mighty.tools/mockmind-api/content/human/64.jpg"
+    },
+    {
+      "first_name": "Liam",
+      "last_name": "Thompson",
+      "role": "Manager",
+      "score": "23",
+      "status" : "not rolling",
+      "chip_colour": "primary",
+      "picture": "https://mighty.tools/mockmind-api/content/human/64.jpg"
+    },
+    {
+      "first_name": "Olivia",
+      "last_name": "Rodriguez",
+      "role": "Top Trader",
+      "score": "5",
+      "status" : "not rolling",
+      "chip_colour": "success",
+      "picture": "https://mighty.tools/mockmind-api/content/human/46.jpg"
+    }
+  ]
