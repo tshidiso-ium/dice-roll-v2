@@ -1,10 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 // import Image from 'next/image';
 import Dice from 'react-dice-roll';
-import  './home.css'
-
+import  './home.css';
+import { database } from '../../modules/firebase';
+import { getDatabase, ref, update, onValue, off } from 'firebase/database';
 
 export default function DiceRoller({updateMyScore}) {
+  const [userData, setUserData] = useState('');
+  const [data, setData] = useState(null);
+  const [rollingData, setRollingData] = useState({id: "", onRole: "false", userName: ""});
   const [total, setTotal] = useState(0)
   const [dice1, setDice1] = useState(0);
   const [dice2, setDice2] = useState(0);
@@ -16,7 +20,11 @@ export default function DiceRoller({updateMyScore}) {
   const diceRef2 = useRef(null)
   const  [randomNumber1, setRandomNumber1] = useState(0);
   const [randomNumber2, setRandomNumber2] = useState(0);
+  var userId = localStorage.getItem("userId" );
+  var userRef = ref(database, `room1/players/${userId}`); 
+
   useEffect( () => {
+    getScore();
     if ('vibrate' in navigator) {
       console.log('Vibration API supported, vibrating...');
       // Trigger vibration for 500ms
@@ -26,14 +34,25 @@ export default function DiceRoller({updateMyScore}) {
       console.log('Vibration API not supported on this device.');
       setCanVibrate("Vibration API not supported")
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     diceRef.current.rollDice();
     diceRef2.current.rollDice();
 
     updateMyScore((dice1 + dice2));
-  }, [dice1])
+  }, [dice1]);
+
+  useEffect(() => {
+    if(dice1 != 0 &&  dice2 != 0){
+      console.log(dice1, dice2)
+        updateUserScore()
+    }
+
+  }, [dice1, dice2])
+
+  
+
   const rollDice = () => {
     console.log("is rolling ", rolling)
 
@@ -75,6 +94,87 @@ export default function DiceRoller({updateMyScore}) {
     // }, 700); // Duration of the animation
   };
 
+  useEffect(() => {
+    console.log( "userData", userData);
+  }, [userData]);
+
+    useEffect(() => {
+    // Reference to the Firebase database path you want to listen to
+    const dataRef = ref(database, 'room1');
+
+    // Listener for real-time updates
+    const handleDataChange = (snapshot) => {
+    setData(snapshot.val());
+    };
+
+    // Attach listener
+    onValue(dataRef, handleDataChange);
+
+    // Cleanup listener on unmount
+    return () => {
+    off(dataRef, 'value', handleDataChange);
+    };
+    }, []);
+
+  useEffect(()=> {
+    console.log(data);
+    if(data){
+        setRollingData(data.rolling);
+    }
+  },[data])
+
+
+
+const updateUserScore = () => {
+  if( (dice1 + dice2) !== 7) {
+    update(userRef, { score: (userData.score + (dice1 + dice2)) })
+      .then(() => {
+        console.log('Score updated successfully');
+      })
+      .catch((error) => {
+        console.error('Error updating score:', error);
+      });
+  }
+  else{
+    userId = "t8nTLjEyJzaNm7z2W1JgdEbuAzC2"
+    update(userRef, { status: "Not Rolling" })
+      .then(() => {
+        console.log('Score updated successfully');
+      })
+      .catch((error) => {
+        console.error('Error updating score:', error);
+      });
+     userRef = ref(database, `room1/players/${userId}`); 
+  }
+
+}
+
+const getScore = () => {
+  // Create a reference to the user's data
+
+
+    // Listener for real-time updates
+    const handleDataChange = (snapshot) => {
+    setUserData(snapshot.val());
+    };
+        // Attach listener
+    onValue(userRef, handleDataChange);
+
+    // Cleanup listener on unmount
+    return () => {
+      off(userRef, 'value', handleDataChange);
+    };
+  // Update the user's score
+  // update(userRef, { score: newScore })
+  //   .then(() => {
+  //     console.log('Score updated successfully');
+  //   })
+  //   .catch((error) => {
+  //     console.error('Error updating score:', error);
+  //   });
+};
+
+
 
   return (
     <div className="flex flex-wrap items-center justify-evenly p-5 pt-5">
@@ -85,7 +185,17 @@ export default function DiceRoller({updateMyScore}) {
         </div>
         <div className='w-full p-4'>
             <p className="flex justify-center text-l">
-            Click Dice To Roll
+              {
+                rollingData.id === userId ? 
+                <>
+                  Click Dice To Roll
+                </>
+                :
+                <>
+                {rollingData.userName}{''} is rolling
+                </>
+              }
+          
             </p>
         </div>
 

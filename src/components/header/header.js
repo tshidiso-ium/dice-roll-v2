@@ -1,14 +1,14 @@
 import { useState, createRef } from "react";
 import logo from '../../images/dice-red.jpg'
 
-export default function NavMobile() {
+export default function NavMobile({userLogedOut}) {
   const [isOpen, setIsOpen] = useState(false);
   const dropContainer = createRef();
   const navContainer = createRef();
 
   const items = [
     {
-      name: "Home",
+      name: "Logout",
       href: "/",
       key: "Home"
     },
@@ -33,6 +33,12 @@ export default function NavMobile() {
     setIsOpen(!isOpen);
   };
 
+  const handleManueClick = (e) => {
+    if(e.name ==="Logout"){
+      userLogedOut();
+    }
+  }
+
   return (
     <div
       onClick={handleClick}
@@ -40,7 +46,7 @@ export default function NavMobile() {
     >
 
       <div className={`bg-white h-full flex justify-between w-full z-50`}>
-                <img src={logo}>
+            <img src={logo}>
         </img>
         <a
           href="/"
@@ -69,31 +75,34 @@ export default function NavMobile() {
           />
         </div>
       </div>
-      <div
+      <div class="backdrop-blur-xl bg-white/30 ...">
+            <div
         ref={dropContainer}
         className={`${!isOpen
           ? "h-0 overflow-hidden fixed top-0 w-full z-50"
-          : " backdrop-blur-xl bg-black bg-opacity-30"}`}
+          : "bg-white/80 backdrop-blur-md backdrop-brightness-150"}`}
       >
-<nav
-  ref={navContainer}
-  className={`w-full h-screen pb-[32px] z-50`}
->
-  {items.map(x => {
-    return (
-      <a key={x.href} href={x.href} className="w-full h-full p-4 text-left pt-6">
-        <p
-          target="_self"
-          className={`text-red-800 w-full animation fadeIn duration-300 ease-linear block text-gradient pt-[32px] pl-[32px] font-[400]`}
-          onClick={handleClick}
+        <nav
+          ref={navContainer}
+          className={`w-full h-screen pb-[32px] z-50`}
         >
-          {x.name.toUpperCase()}
-        </p>
-      </a>
-    );
-  })}
-</nav>
+          {items.map(x => {
+            return (
+              <div key={x.key} className="w-full p-4 text-left pt-6">
+                <p
+                  className={`text-red-800 w-full block text-gradient pt-[32px] pl-[32px] font-[400] cursor-pointer`}
+                  onClick={() => {handleManueClick(x) }}
+                >
+                  {x.name.toUpperCase()}
+                </p>
+              </div>
+            );
+          })}
+        </nav>
       </div>
+</div>
+
+
     </div>
   );
 }
