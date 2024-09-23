@@ -6,21 +6,14 @@ import GameInfo from './components/gameInfo/gameInfo';
 import DiceRoller from './components/dice/dice';
 import Login from './components/login/login';
 import Register from './components/register/register';
+import Boards from './components/boards/boards';
+import Game from './components/game/game';
 import React, { useState, useEffect } from 'react';
 
 function App() {
-  const [myScore, setMyScore] = useState(0)
+  const [joinedBoard, setJoinedBoard] = useState('')
   const [userLogedIn, setUserLogedIn] = useState(false)
-  const handleScoreChange = (score) => {
-    console.log(score);
-    if (score === 7) {
-      setMyScore(0)
-    }else{
-      setTimeout( () => {
-        setMyScore(myScore + score) 
-    }, 1000)
-    }
- }
+
 
  const onUserLogin = (userInfo) => {
   console.log(userInfo)
@@ -37,25 +30,45 @@ function App() {
   const onUserLogout = () => {
     setUserLogedIn(false)
  }
+
+ const onJoinedBoard = (boardId)  => {
+    console.log("Board Joined");
+    setJoinedBoard(boardId)
+    localStorage.setItem("joinedBoard", boardId );
+ }
   return (
     <div className="App">
-      {/* <Register/> */}   
+    {/* <Register/>    */}
       {
          
         userLogedIn ? 
-          <>
-            <NavMobile userLogedOut = {onUserLogout}/>
-            <GameInfo myScore= {myScore}/>
-            <Playersboard/>
-            <DiceRoller updateMyScore={handleScoreChange}/> 
+          <>                
+          <NavMobile userLogedOut = {onUserLogout}/>
+            {
+              joinedBoard ? 
+              <>
+              <Game/>
+              </>
+              :
+              <>            
+              <Boards boardJoined = {onJoinedBoard}/>
+              </>
+            }
+            
 
-            {/* 
-              <GameInfo myScore= {myScore}/>
-              <DiceRoller updateMyScore={handleScoreChange}/> 
-            */}
+            {/* <GameInfo myScore= {myScore}/> */}
+
+            {/* <Playersboard/> */}
+            {/* <DiceRoller updateMyScore={handleScoreChange}/>  */}
+            {/* <GameInfo myScore= {myScore}/>
+            <DiceRoller updateMyScore={handleScoreChange}/>               */}
           </>
+
           :
-          <Login userLogedIn = {onUserLogin}/>
+          <>
+             <Login userLogedIn = {onUserLogin}/>
+          </>
+  
       }
     </div>
   );

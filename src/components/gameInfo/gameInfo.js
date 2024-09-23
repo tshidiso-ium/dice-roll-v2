@@ -8,11 +8,13 @@ export default function GameInfo ({myScore}) {
   const [data, setData] = useState(null);
   const [gameInfo, setGameInfo] = useState('');
   const [userInfo, setUserInfo] = useState('')
-
+  var userId = localStorage.getItem("userId" );
+  var boardId = localStorage.getItem("joinedBoard");
+  console.log(boardId);
     useEffect(() => {
     // Reference to the Firebase database path you want to listen to
-    const dataRef = ref(database, 'room1');
-
+    const dataRef = ref(database, `boards/${boardId}`);
+    console.log("Data ref:", dataRef)
     // Listener for real-time updates
     const handleDataChange = (snapshot) => {
     setData(snapshot.val());
@@ -39,7 +41,7 @@ export default function GameInfo ({myScore}) {
     }, [data]);
 
     const getDataById = (data, id) => {
-    return data[id] || null; // Returns null if the ID is not found
+        return data[id] || null; // Returns null if the ID is not found
     };
 
     return ( 
@@ -58,7 +60,7 @@ export default function GameInfo ({myScore}) {
                         <h1 htmlFor="position" className="text-balance pl-[2%] content-center text-sm ">{userInfo.bet}</h1>
                         <h1 htmlFor="Department" className="text-balance pl-[2%] content-center text-sm ">{gameInfo.stake}</h1>
                         </div>
-                        <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent mb-0 h-[1px] w-full" />
+                        <div className="bg-gradient-to-r from-transparent via-red-700 dark:via-red-700 to-transparent mb-0 h-[1px] w-full" />
                     </>
                     :
                     <>

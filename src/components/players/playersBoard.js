@@ -12,10 +12,14 @@ import { ref, onValue, off } from 'firebase/database';
 const Playersboard = () => {
   const [data, setData] = useState(null);
   const [players, setPlayers] = useState('');
-  
+  const [sortedEntries, setSortedEntries] = useState('');
+  const userId = localStorage.getItem("userId" );
+  const boardId = localStorage.getItem("joinedBoard" );
+
+
   useEffect(() => {
     // Reference to the Firebase database path you want to listen to
-    const dataRef = ref(database, 'room1');
+    const dataRef = ref(database, `boards/${boardId}`);
 
     // Listener for real-time updates
     const handleDataChange = (snapshot) => {
@@ -38,6 +42,13 @@ const Playersboard = () => {
     }
   }, [data])
 
+  useEffect(() => {
+    const sortedEntries = Object.entries(players)
+        .sort(([keyA, memberA], [keyB, memberB]) => memberB.score - memberA.score);
+    setSortedEntries(sortedEntries);
+
+  }, [players])
+
         console.log(players)
     return (
         <div className="teamContent mt-2"> {/* Container for the team content */}
@@ -57,30 +68,24 @@ const Playersboard = () => {
                 {
                     players ? 
                     <>
-                    {Object.entries(players).map(([key, member], index) => (
+                    {sortedEntries.map(([key, member], index) => (
     
-                        <div className={`grid grid-cols-5 h-[35px] space-y-0 w-full mt-0`}>
+                        <div className={`grid grid-cols-5 h-[35px] space-y-0 w-full mt-0 ${ key === userId ? "bg-slate-200": "" } `}>
                             <div className="text-balance content-center text-sm">
                                 {1 + index}.                                    
                             </div>
 
-                            <div className="flex col-span-2 text-balance content-center text-sm">       
+                            <div className="flex col-span-2 text-balance content-center text-sm pt-2 pb-2">       
                                 <Avatar
                                     alt={member.userName} // Alt text for the Avatar
                                     src={member.picture} // Source of the Avatar image
                                     sx={{ width: 24, height: 24 }} // Styling for the Avatar
                                 />                           
-                            <labe className={`pl-2 text-sm`}> {member.userName}</labe>
+                            <labe className={`pl-2 text-sm text-balance align-middle text-center `}> {member.userName}</labe>
                             </div>
                             <label htmlFor="position" className="text-balance pl-[1%] content-center text-sm">{member.score}</label>
                             <label htmlFor="Department" className="text-balance pl-[1%] content-center text-sm">
-                                {member.status === "Rolling" ? 
-                                
                                 <Chip label={member.status}  size="small" color={member.chip_colour} variant="outlined"/>
-                                :
-                                <>
-                                </>
-                                }
                             </label>
                         </div>
                     ))}

@@ -7,16 +7,48 @@ const Login = ({userLogedIn}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [modalState, setStateModal] = useState({'showModal': false, "text": '', "title" :'', 'icon': ''});
 
   const handleLogin = async (e) => {
     e.preventDefault();
-            console.log("loging in");
+    console.log("loging in");
     setError(null);
     try {
-      userLogedIn(await signInWithEmailAndPassword(auth, email, password));
+      const result = await signInWithEmailAndPassword(auth,email, password);
+      console.log(result);
+      const idToken = await result._tokenResponse;
+      const uid = await verifyUser(idToken.idToken);
+      if (result && uid.uid == result.user.uid) {
+        // Display the success popup
+        setStateModal({
+          showModal: true,
+          text: 'Login Successful',
+          title: "Welcome",
+          icon: "approved",
+        });
+        localStorage.setItem("userID", result.user.uid);
+        localStorage.setItem("idToken", idToken.idToken);
+        userLogedIn(result);
+      }
+      else{
+        setStateModal({
+          showModal: true,
+          icon: "unapproved",
+          title: "Try Again",
+          text: `Failed to login`
+        });
+      }
+      // userLogedIn(await signInWithEmailAndPassword(auth, email, password));
       // On successful login, you can redirect or show a success message
     } catch (err) {
+      console.log(err);
       setError(err.message);
+    }
+    finally {
+      // Ensure the Popup is dismissed after the sign-in process is complete or encounters an error
+      setTimeout(() => {
+        setStateModal({'showModal': false, "text": '', "title" :'', 'icon': ''})
+      }, 3000); // Adjust the delay as needed
     }
   };
 
@@ -65,3 +97,26 @@ const Login = ({userLogedIn}) => {
 };
 
 export default Login;
+
+const verifyUser = async (idToken) => {
+  try{
+    const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/verifyUser');
+    url.searchParams.append('idToken', idToken);
+    console.log(url)
+    const res = await fetch(url,{
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+
+    const data = await res.json();
+    console.log(data)
+    return await data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err);
+  }
+}

@@ -21,7 +21,8 @@ export default function DiceRoller({updateMyScore}) {
   const  [randomNumber1, setRandomNumber1] = useState(0);
   const [randomNumber2, setRandomNumber2] = useState(0);
   var userId = localStorage.getItem("userId" );
-  var userRef = ref(database, `room1/players/${userId}`); 
+  var boardId = localStorage.getItem("joinedBoard");
+  var userRef = ref(database, `boards/${boardId}/players/${userId}`); 
 
   useEffect( () => {
     getScore();
@@ -37,10 +38,12 @@ export default function DiceRoller({updateMyScore}) {
   }, []);
 
   useEffect(() => {
-    diceRef.current.rollDice();
-    diceRef2.current.rollDice();
+    if( userData && userData.status === "Rolling"){
+        diceRef.current.rollDice();
+        diceRef2.current.rollDice();
+        updateMyScore((dice1 + dice2));
+    }
 
-    updateMyScore((dice1 + dice2));
   }, [dice1]);
 
   useEffect(() => {
@@ -136,15 +139,13 @@ const updateUserScore = () => {
       });
   }
   else{
-    userId = "t8nTLjEyJzaNm7z2W1JgdEbuAzC2"
-    update(userRef, { status: "Not Rolling" })
+    update(userRef, { status: "Out", chip_colour: "error" })
       .then(() => {
         console.log('Score updated successfully');
       })
       .catch((error) => {
         console.error('Error updating score:', error);
       });
-     userRef = ref(database, `room1/players/${userId}`); 
   }
 
 }
@@ -180,35 +181,38 @@ const getScore = () => {
     <div className="flex flex-wrap items-center justify-evenly p-5 pt-5">
         <div className={`flex flex-col justify-evenly absolute box-border h-32 w-32 p-4 ${rolling ? 'opacity-0' : 'animate-floatUp'}  `}>
             <p className={`flex justify-center text-7xl ${ dice1 + dice2 === 7 ? 'text-red-600' : dice1 + dice2 === 0 ? 'text-transparent' :'text-green-600'}`}>
-                +{ dice1 + dice2}
+                  +{ dice1 + dice2}
             </p>
         </div>
         <div className='w-full p-4'>
             <p className="flex justify-center text-l">
               {
-                rollingData.id === userId ? 
+                 userData && userData.status === "Rolling" ? 
                 <>
                   Click Dice To Roll
                 </>
                 :
                 <>
-                {rollingData.userName}{''} is rolling
+                  You Are Out
                 </>
               }
           
             </p>
         </div>
+      {
+          <div className="flex flex-nowrap z-10 mt-2"         
+                onClick={ userData && userData.status === "Rolling" ?  !rolling ? rollDice : null : null} 
+            >
+            <div className={`flex flex-col justify-evenly h-32 w-32 p-4 ${rolling ? 'dice-rolling-One' : ''} z-0`}>
+              <Dice ref={diceRef2} cheatValue={dice1} size={100} triggers={rolling ? [] : ['click']} />
+            </div>
+            <div className={`flex flex-col justify-evenly h-32 w-32 p-4 ${rolling ? 'dice-rolling-Two' : ''} z-0`}>
+              <Dice ref={diceRef} cheatValue={dice2} size={100} triggers={rolling ? [] : ['click']} />
+            </div>
+          </div>
 
-      <div className="flex flex-nowrap z-10 mt-2"         
-            onClick={!rolling ? rollDice : null} 
-        >
-        <div className={`flex flex-col justify-evenly h-32 w-32 p-4 ${rolling ? 'dice-rolling-One' : ''} z-0`}>
-          <Dice ref={diceRef2} cheatValue={dice1} size={100} triggers={rolling ? [] : ['click']} />
-        </div>
-        <div className={`flex flex-col justify-evenly h-32 w-32 p-4 ${rolling ? 'dice-rolling-Two' : ''} z-0`}>
-          <Dice ref={diceRef} cheatValue={dice2} size={100} triggers={rolling ? [] : ['click']} />
-        </div>
-      </div>
+      } 
+
     </div>
   );
 }
