@@ -46,7 +46,6 @@ const Playersboard = () => {
     const sortedEntries = Object.entries(players)
         .sort(([keyA, memberA], [keyB, memberB]) => memberB.score - memberA.score);
     setSortedEntries(sortedEntries);
-
   }, [players])
 
         console.log(players)
@@ -62,7 +61,7 @@ const Playersboard = () => {
                     <label htmlFor="Department" className="text-balance pl-[2%] content-center text-l">status</label>
                 </div>
             </div>
-            <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent mb-3 h-[1px] w-full" />
+            <div className="bg-gradient-to-r from-transparent via-red-700 dark:via-neutral-700 to-transparent mb-3 h-[1px] w-full" />
                 <div className='relativ bg-opacity-75 min-w-[100%]'>
                 {/* Mapping through the teamJson array to render team members */}
                 {
