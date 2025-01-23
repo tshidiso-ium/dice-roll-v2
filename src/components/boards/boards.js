@@ -15,14 +15,7 @@ export default function Boards ({boardJoined}) {
 
         const handleDataChange = (snapshot) => {
             console.log('Data changed:', snapshot.val());
-            var data = snapshot.val();
-
-            if (data) {
-                // Filter the boards where status is "concluded"
-                const concludedBoards = Object.values(data).filter(board => board.status !== "Concluded");
-                console.log('Concluded Boards:', concludedBoards);
-                setBoards(concludedBoards); // Set the state to the filtered boards
-            }
+            setBoards(snapshot.val());
         };
 
         onValue(dataRef, handleDataChange, (error) => {
@@ -146,47 +139,54 @@ export default function Boards ({boardJoined}) {
                 <BoardGenerator modalState={modalState} joinRandomBoard={joinRandomBoardValue} />
                 <div className="flex flex-cols-2 gap-4 p-4 flex-wrap justify-center mt-2">
                     {Object.entries(boards).map(([roomId, room], index) => (
-                        <form onSubmit={(e) => { e.preventDefault(); handleJoinBoard(roomId)}} >
-                            <div className={`grid grid-cols-1 space-y-0 w-full mt-0 bg-white z-10 border-r-2 border-t-2 border-b-2 border-red-800 rounded-lg`}>
-                            <h1
-                            htmlFor="fullname"
-                            className="py-2 text-center content-center "
-                            >
-                                {roomId}
-                            </h1>
-                            <div className="bg-gradient-to-r from-transparent via-red-800 dark:via-red-700 to-transparent mb-0 h-[1px] w-full" />
-                            <label
-                            htmlFor="fullname"
-                            className="py-1 px-4 text-left content-cente"
-                            >
-                            Bet Amount: {room.bet}
-                            </label>
-                            <label
-                            htmlFor="fullname"
-                            className="py-1 px-4 text-left content-center"
-                            >
-                            Players Count: {Object.keys(room.players).length}
-                            </label>
-                            <label
-                            htmlFor="fullname"
-                            className="py-1 px-4 text-left content-center"
-                            >
-                            Current Stake: R190
-                            </label>
-                            <label className="py-1 px-4 text-left content-center">
-                                Starting in: {countdowns[roomId] ? 
-                                    ` ${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                                    : 'Countdown is over!'}
-                            </label>
+                        <>                        
+                            {
+                                room.status != "Concluded" ? 
+                                <form onSubmit={(e) => { e.preventDefault(); handleJoinBoard(roomId)}} >
+                                    <div className={`grid grid-cols-1 space-y-0 w-full mt-0 bg-white z-10 border-r-2 border-t-2 border-b-2 border-red-800 rounded-lg`}>
+                                    <h1
+                                    htmlFor="fullname"
+                                    className="py-2 text-center content-center "
+                                    >
+                                        {roomId}
+                                    </h1>
+                                    <div className="bg-gradient-to-r from-transparent via-red-800 dark:via-red-700 to-transparent mb-0 h-[1px] w-full" />
+                                    <label
+                                    htmlFor="fullname"
+                                    className="py-1 px-4 text-left content-cente"
+                                    >
+                                    Bet Amount: {room.bet}
+                                    </label>
+                                    <label
+                                    htmlFor="fullname"
+                                    className="py-1 px-4 text-left content-center"
+                                    >
+                                    Players Count: {Object.keys(room.players).length}
+                                    </label>
+                                    <label
+                                    htmlFor="fullname"
+                                    className="py-1 px-4 text-left content-center"
+                                    >
+                                    Current Stake: R190
+                                    </label>
+                                    <label className="py-1 px-4 text-left content-center">
+                                        Starting in: {countdowns[roomId] ? 
+                                            ` ${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
+                                            : 'Countdown is over!'}
+                                    </label>
 
-                            <button
-                            className="transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:from-mt-20 dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-                            type="submit"
-                            >
-                                PLAY
-                        </button>
-                            </div>
-                        </form>
+                                    <button
+                                    className="transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:from-mt-20 dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                                    type="submit"
+                                    >
+                                        PLAY
+                                </button>
+                                    </div>
+                                </form>
+                                :
+                                null
+                            }
+                        </>
                     ))
                     }
                 {/* <div className="bg-green-500 p-4 rounded-lg shadow-md">
