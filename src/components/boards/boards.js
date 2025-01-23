@@ -19,7 +19,7 @@ export default function Boards ({boardJoined}) {
 
             if (data) {
                 // Filter the boards where status is "concluded"
-                const concludedBoards = Object.values(data).filter(board => board.status === "Concluded");
+                const concludedBoards = Object.values(data).filter(board => board.status !== "Concluded");
                 console.log('Concluded Boards:', concludedBoards);
                 setBoards(concludedBoards); // Set the state to the filtered boards
             }
