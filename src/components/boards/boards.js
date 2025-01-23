@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { database } from '../../modules/firebase';
 import { ref, onValue, off } from 'firebase/database';
-import BoardGenerator from '../randomBoardGenerator/boardGenerator'
+import BoardGenerator from '../randomBoardGenerator/boardGenerator';
 
 export default function Boards ({boardJoined}) {
 
@@ -15,7 +15,14 @@ export default function Boards ({boardJoined}) {
 
         const handleDataChange = (snapshot) => {
             console.log('Data changed:', snapshot.val());
-            setBoards(snapshot.val());
+            var data = snapshot.val();
+
+            if (data) {
+                // Filter the boards where status is "concluded"
+                const concludedBoards = Object.values(data).filter(board => board.status === "Concluded");
+                console.log('Concluded Boards:', concludedBoards);
+                setBoards(concludedBoards); // Set the state to the filtered boards
+            }
         };
 
         onValue(dataRef, handleDataChange, (error) => {
@@ -71,14 +78,19 @@ export default function Boards ({boardJoined}) {
     const joinRandomBoardValue = async (amount) => {
         console.log("Amount: ", amount);
         try{
-            const result = await randomBoardJoin(amount);
-            if(result?.status === "success"){
-                console.log("Board ID: ", result.boardId.boardId);
-                handleJoinBoard(result.boardId.boardId)
+            if(amount !== 0 ){
+                const result = await randomBoardJoin(amount);
+                if(result?.status === "success"){
+                    console.log("Board ID: ", result.boardId.boardId);
+                    handleJoinBoard(result.boardId.boardId)
+                    updateModelState();
+                }
+                console.log("Available Boards: ", result);
+            }
+            else{
                 updateModelState();
             }
 
-            console.log("Available Boards: ", result);
         }
         catch(err){
             throw new Error(err);
