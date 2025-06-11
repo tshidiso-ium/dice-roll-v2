@@ -9,17 +9,12 @@ export default function DiceRoller({updateMyScore}) {
   const [userData, setUserData] = useState('');
   const [data, setData] = useState(null);
   const [rollingData, setRollingData] = useState({id: "", onRole: "false", userName: ""});
-  const [total, setTotal] = useState(0)
   const [dice1, setDice1] = useState(0);
   const [dice2, setDice2] = useState(0);
-  // var dice1 = 1;
-  // var dice2 = 1;
   const [rolling, setRolling] = useState(false);
   const [canVibrat, setCanVibrate] = useState('');
   const diceRef = useRef(null);
   const diceRef2 = useRef(null)
-  const  [randomNumber1, setRandomNumber1] = useState(0);
-  const [randomNumber2, setRandomNumber2] = useState(0);
   var userId = localStorage.getItem("userId" );
   var boardId = localStorage.getItem("joinedBoard");
   var userRef = ref(database, `boards/${boardId}/players/${userId}`); 
@@ -44,33 +39,14 @@ export default function DiceRoller({updateMyScore}) {
         updateMyScore((dice1 + dice2));
     }
 
-  }, [dice1]);
+  }, [dice1,dice2]);
 
-  useEffect(() => {
-    if(dice1 != 0 &&  dice2 != 0){
-      console.log(dice1, dice2)
-        updateUserScore()
-    }
 
-  }, [dice1, dice2])
-
-  
-
-  const rollDice = () => {
-    console.log("is rolling ", rolling)
-
+  const rollDice = async () => {
+    console.log("is rolling ", rolling);
+    const diceRoleRes = await rollDeDice(boardId);
     if (diceRef.current && diceRef2.current ) {
-    //   console.log(diceRef)
-      //dice1 = Math.floor(Math.random() * 6) + 1;
-
-      //dice2= Math.floor(Math.random() * 6) + 1;
-        // setRandomNumber1(Math.floor(Math.random() * 6) + 1);
-        // setRandomNumber2( Math.floor(Math.random() * 6) + 1);
-      setDice1(Math.floor(Math.random() * 6) + 1);
-      setDice2(Math.floor(Math.random() * 6) + 1);
-
-
-          setRolling(true);
+      setRolling(true);
     }
     if (navigator.vibrate) {
       navigator.vibrate([50, 20, 50 , 20, 50, 50, 20, 50 , 20, 50, 50, 20, 50 , 20, 50]);
@@ -78,103 +54,36 @@ export default function DiceRoller({updateMyScore}) {
     setTimeout( () => {
         setRolling(false);
     }, 1000)
-
-    // setRolling(false);
-    // setTimeout(() => {
-    //   const randomNumber1 = Math.floor(Math.random() * 6) + 1;
-    //   const randomNumber2 = Math.floor(Math.random() * 6) + 1;
-    //   console.log("random1", randomNumber1)
-    //   console.log("random2", randomNumber2)
-    // if( (randomNumber1 + randomNumber2) == 7 ){
-    //     setTotal(0)
-    // }
-    // else{
-    //   setTotal(total + (randomNumber1 + randomNumber2))
-    // }
-    //   // setDice1(randomNumber1);
-    //   // setDice2(randomNumber2);
-    //   setRolling(false);
-    // }, 700); // Duration of the animation
   };
 
   useEffect(() => {
     console.log( "userData", userData);
   }, [userData]);
 
-    useEffect(() => {
-    // Reference to the Firebase database path you want to listen to
-    const dataRef = ref(database, 'room1');
-
-    // Listener for real-time updates
-    const handleDataChange = (snapshot) => {
-    setData(snapshot.val());
-    };
-
-    // Attach listener
-    onValue(dataRef, handleDataChange);
-
-    // Cleanup listener on unmount
-    return () => {
-    off(dataRef, 'value', handleDataChange);
-    };
-    }, []);
-
   useEffect(()=> {
     console.log(data);
     if(data){
         setRollingData(data.rolling);
     }
-  },[data])
+  },[data]);
 
-
-
-const updateUserScore = () => {
-  if( (dice1 + dice2) !== 7) {
-    update(userRef, { score: (userData.score + (dice1 + dice2)) })
-      .then(() => {
-        console.log('Score updated successfully');
-      })
-      .catch((error) => {
-        console.error('Error updating score:', error);
-      });
-  }
-  else{
-    update(userRef, { status: "Out", chip_colour: "error" })
-      .then(() => {
-        console.log('Score updated successfully');
-      })
-      .catch((error) => {
-        console.error('Error updating score:', error);
-      });
-  }
-
-}
 
 const getScore = () => {
-  // Create a reference to the user's data
-
-
     // Listener for real-time updates
     const handleDataChange = (snapshot) => {
-    setUserData(snapshot.val());
+      setUserData(snapshot.val());
+      console.log("Val Snapshot: ", snapshot.val());
+      setDice1(snapshot.val().dice1);
+      setDice2(snapshot.val().dice2);
     };
-        // Attach listener
+    // Attach listener
     onValue(userRef, handleDataChange);
 
     // Cleanup listener on unmount
     return () => {
       off(userRef, 'value', handleDataChange);
     };
-  // Update the user's score
-  // update(userRef, { score: newScore })
-  //   .then(() => {
-  //     console.log('Score updated successfully');
-  //   })
-  //   .catch((error) => {
-  //     console.error('Error updating score:', error);
-  //   });
 };
-
 
 
   return (
@@ -215,4 +124,43 @@ const getScore = () => {
 
     </div>
   );
+}
+
+const rollDeDice = async (boardId) => {
+    try{
+        const userId = localStorage.getItem("userID");
+        const idToken = localStorage.getItem("idToken");
+        const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/rollDice');
+        console.log(idToken);
+        console.log(userId);
+        url.searchParams.append('userId', userId);
+        const res = await fetch(url,{
+            method: "POST",
+            credentials: "include",
+            headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}` 
+            },
+            body: JSON.stringify({
+            boardId: boardId
+            })
+        });
+        console.log(res.status)
+        if(res.status === 401 || res.status === 404 ){
+            const data = await res.json();
+            console.log(data);
+            return {error: data.message }
+        }
+        else if(res.status === 200){
+            const data = await res.json();
+            console.log(data);
+            return {status: "success",dice : data.data, boardId: data.boardId}
+        }
+        return {"data:" : "hello World"};
+    }
+    catch (err) {
+        console.log("New User createUser: Error");
+        console.log(err);
+        throw new Error(err);
+    }
 }

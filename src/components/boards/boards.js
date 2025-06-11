@@ -3,7 +3,7 @@ import { database } from '../../modules/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import BoardGenerator from '../randomBoardGenerator/boardGenerator';
 
-export default function Boards ({boardJoined}) {
+export default function Boards ({boardJoined, playAgain}) {
 
     const [boards, setBoards] = useState('');
     const [countdowns, setCountdowns] = useState({});
@@ -96,207 +96,85 @@ export default function Boards ({boardJoined}) {
         setStateModal({'showModal': !modalState.showModal, "text": '', "title" :'', 'icon': ''})
     }
 
-    // useEffect(()=> {
-    //  console.log(boards);
-    //     if(boards){
-    //         setGameInfo(data);
-    //         const user = data.players
-    //         console.log(user)
-    //         const id = localStorage.getItem("userId" );;
-    //         setUserInfo(getDataById(user, id))
-    //     }
-    // }, [boards]);
+    useEffect(()=> {
+     console.log(playAgain);
+        if(playAgain){
+            joinRandomBoardValue(playAgain.betAmount);
+        }
+    }, []);
 
     return ( 
-        <>
-            <div className="bg-opacity-75 min-w-[100%] sticky top-0 bg-white">
-                <div className={`grid grid-cols-2 h-[35px] space-y-0 w-full mt-0 bg-white z-10`}>
-                    <label
-                    htmlFor="fullname"
-                    className="text-balance content-center border-r border-red-700 dark:border-red-700 pr-[2%]"
-                    onClick={updateModelState}
-                    >
-                    RANDOM BOARD
-                    </label>
-                    <label
-                    htmlFor="Department"
-                    className="text-balance content-center"
-                    >
-                    CREATE BOARD
-                    </label>
-                </div>
-                <div className="bg-gradient-to-r from-transparent via-red-800 dark:via-red-700 to-transparent mb-0 h-[1px] w-full" />
+<>
+  <div className="min-w-full sticky top-0 bg-gradient-to-b from-[#1a0000] via-[#330000] to-black border-b border-red-800 shadow-lg z-50 min-h-screen">
+    <div className="grid grid-cols-2 text-center text-white text-lg font-bold tracking-wide">
+      <button
+        onClick={updateModelState}
+        className="py-2 border-r border-red-700 bg-gradient-to-r from-[#660000] to-[#990000] hover:brightness-125 transition-all"
+      >
+        🎲 RANDOM BOARD
+      </button>
+      <button className="py-2 bg-gradient-to-r from-[#990000] to-[#660000] hover:brightness-125 transition-all">
+        ➕ CREATE BOARD
+      </button>
+    </div>
+    <div className="h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent my-2" />
 
-                <div className={`grid grid-cols-1 h-[35px] space-y-0 w-full  bg-white z-10 mt-3`}>
-                <label
-                    htmlFor="Department"
-                    className="text-balance content-center"
-                    >
-                    AVIALABLE  BOARDS
-                    </label>
-                </div>
-                <div className="bg-gradient-to-r from-transparent via-red-800 dark:via-red-800 to-transparent mb-0 h-[1px] w-full" />
-                <BoardGenerator modalState={modalState} joinRandomBoard={joinRandomBoardValue} />
-                <div className="flex flex-cols-2 gap-4 p-4 flex-wrap justify-center mt-2">
-                    {Object.entries(boards).map(([roomId, room], index) => (
-                        <>                        
-                            {
-                                room.status != "Concluded" ? 
-                                <form onSubmit={(e) => { e.preventDefault(); handleJoinBoard(roomId)}} >
-                                    <div className={`grid grid-cols-1 space-y-0 w-full mt-0 bg-white z-10 border-r-2 border-t-2 border-b-2 border-red-800 rounded-lg`}>
-                                    <h1
-                                    htmlFor="fullname"
-                                    className="py-2 text-center content-center "
-                                    >
-                                        {roomId}
-                                    </h1>
-                                    <div className="bg-gradient-to-r from-transparent via-red-800 dark:via-red-700 to-transparent mb-0 h-[1px] w-full" />
-                                    <label
-                                    htmlFor="fullname"
-                                    className="py-1 px-4 text-left content-cente"
-                                    >
-                                    Bet Amount: {room.bet}
-                                    </label>
-                                    <label
-                                    htmlFor="fullname"
-                                    className="py-1 px-4 text-left content-center"
-                                    >
-                                    Players Count: {Object.keys(room.players).length}
-                                    </label>
-                                    <label
-                                    htmlFor="fullname"
-                                    className="py-1 px-4 text-left content-center"
-                                    >
-                                    Current Stake: R190
-                                    </label>
-                                    <label className="py-1 px-4 text-left content-center">
-                                        Starting in: {countdowns[roomId] ? 
-                                            ` ${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                                            : 'Countdown is over!'}
-                                    </label>
+    <div className="text-center py-2 text-yellow-400 font-semibold text-md uppercase tracking-wide bg-black">
+      🃏 Available Boards
+    </div>
+    <div className="h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent" />
 
-                                    <button
-                                    className="transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:from-mt-20 dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-                                    type="submit"
-                                    >
-                                        PLAY
-                                </button>
-                                    </div>
-                                </form>
-                                :
-                                null
-                            }
-                        </>
-                    ))
-                    }
-                {/* <div className="bg-green-500 p-4 rounded-lg shadow-md">
-                                        <div className={`grid grid-cols-1 space-y-0 w-full mt-0 bg-white z-10`}>
-                        <label
-                            htmlFor="fullname"
-                            className="text-center content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            RANDOM BOARD
-                        </label>
-                        <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent mb-0 h-[1px] w-full" />
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Bet Amount: R20
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Players Count: 10
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Current Stake: R190
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Starting in: 25s
-                        </label>
-                    </div>
-                </div>
-                <div className="bg-red-500 p-4 rounded-lg shadow-md">
-                                        <div className={`grid grid-cols-1 space-y-0 w-full mt-0 bg-white z-10`}>
-                        <label
-                            htmlFor="fullname"
-                            className="text-center content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            RANDOM BOARD
-                        </label>
-                        <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent mb-0 h-[1px] w-full" />
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Bet Amount: R20
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Players Count: 10
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Current Stake: R190
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Starting in: 25s
-                        </label>
-                    </div>
-                </div>
-                <div className="bg-yellow-500 p-4 rounded-lg shadow-md">
-                    <div className={`grid grid-cols-1 space-y-0 w-full mt-0 bg-white z-10`}>
-                        <label
-                            htmlFor="fullname"
-                            className="text-center content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            RANDOM BOARD
-                        </label>
-                        <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent mb-0 h-[1px] w-full" />
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Bet Amount: R20
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Players Count: 10
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Current Stake: R190
-                        </label>
-                        <label
-                            htmlFor="fullname"
-                            className="pl-4 text-left content-center border-r border-neutral-300 dark:border-neutral-700 pr-[2%]"
-                        >
-                            Starting in: 25s
-                        </label>
-                    </div>
-                </div> */}
-                </div>
+    <BoardGenerator modalState={modalState} joinRandomBoard={joinRandomBoardValue} />
+
+    <div className="flex flex-wrap justify-center align-middle gap-6 p-4">
+      {Object.entries(boards).map(([roomId, room], index) =>
+        room.status !== "Concluded" ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleJoinBoard(roomId);
+            }}
+            key={roomId}
+            className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
+          >
+            <h2 className="text-center text-xl font-extrabold mb-2 text-yellow-400 tracking-wide drop-shadow-md">
+              🎰 {roomId}
+            </h2>
+            <div className="h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent my-2" />
+            <p className="text-sm mb-1">💰 Bet Amount: <span className="font-bold">{room.bet}</span></p>
+            <p className="text-sm mb-1">👥 Players: <span className="font-bold">{Object.keys(room.players).length}</span></p>
+            <p className="text-sm mb-1">💵 Current Stake: <span className="font-bold">R190</span></p>
+            <p className="text-sm mb-4">⏱ Starting in: <span className="font-bold">
+              {countdowns[roomId]
+                ? `${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
+                : "Countdown is over!"}
+            </span></p>
+
+            <button
+                type="submit"
+                disabled={!countdowns[roomId]}
+                className={
+                    countdowns[roomId]
+                    ? `w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform transform hover:-translate-y-1`
+                    : `w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed`
+                }
+            >
+                PLAY NOW
+            </button>
+            <div className={    countdowns[roomId]
+                ?
+                `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
+                :
+                `absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`
+                }
+            >     
             </div>
-        </>
+          </form>
+        ) : null
+      )}
+    </div>
+  </div>
+</>
     )
 }
 

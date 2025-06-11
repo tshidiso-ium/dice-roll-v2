@@ -1,10 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import WindowSize from '../../modules/windowSize';
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { cn } from '../utils/cn';
-import logo from '../../images/dice-red.jpg'
+import WindowSize from '@/app/modules/windowSize';
 
 
 const backdrop = {
@@ -15,11 +11,11 @@ const backdrop = {
 
 function ModalProps () {
   const device = WindowSize();
-  // console.log('device width: ', device.width);
+  console.log('device width: ', device.width);
   return {
     hidden: { y: "-100vh", opacity: 0 },
     visible: { 
-      y: `${device.width < 1540 ? '200px' : '200px' }`, 
+      y: `${device.width < 1540 ? '250px' : '550px' }`, 
       opacity: 1,
       transition: { delay: 0.2 }
     }
@@ -221,107 +217,99 @@ function Icons({ icon }) {
   }
 }
 
-const BoardGenerator = ({modalState, joinRandomBoard}) => {  
+const Modal = ({ modalState , onOptionSelect}) => {  
   const modal = ModalProps()
-  const [selectedOption, setSelectedOption] = useState('R5');  // Initialize state with the default value
-
-  // Handle the change event for the select dropdown
-  const handleSelectChange = (event) => {
-    setSelectedOption(event.target.value);  // Update the selected option state
-  };
-
-  // Function to handle form submission (or any other action with the selected option)
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log('Selected option:', selectedOption);  // Log or return the selected option
-    joinRandomBoard(selectedOption);
-    // You can add further logic here to process the selected option
-  };
-
-  
-  // Function to handle form submission (or any other action with the selected option)
-  const handleCancel = () => {
-    joinRandomBoard(0);
-    // You can add further logic here to process the selected option
-  };
-
-
   return (
-<AnimatePresence>
-  {modalState.showModal && (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm"
-      variants={backdrop}
-      initial="hidden"
-      animate="visible"
-      exit="hidden"
-    >
+		// <AnimatePresence>
+		// 	{modalState.showModal && (
+		// 		<motion.div
+		// 			className="fixed top-0 left-0 w-full h-full bg-red-900 bg-opacity-50 z-10 "
+		// 			variants={backdrop}
+		// 			initial="hidden"
+		// 			animate="visible"
+		// 			exit="hidden"
+		// 		>
+		// 			<motion.div
+		// 				className="max-w-[400px] max-h-[400px] h-[290px] mx-auto p-10 border-b-4 border-l-2 border-r-2 border-t-2  bg-white rounded-lg text-center border-red-900 bg-gradient-to-t from-red-900 from-2% via-gray-50 via-5% to-gray-50 to-25%"
+		// 				variants={modal}
+		// 			>
+		// 				<div
+		// 					className="absolute scale-50 top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-red-900 "
+		// 					// style={{
+		// 					// 	background:
+		// 					// 		"linear-gradient(0deg, rgba(0, 122, 92, 1) -90%, rgba(0, 0, 0, 1))",
+		// 					// }}
+		// 				>
+		// 					<Icons icon={modalState.icon} />
+		// 				</div>
+		// 				<p className={`absolute bottom-16 left-1 right-1 text-lg text-black ${modalState.options ? 'mb-6' : ""}`}>
+		// 					{modalState.text}
+		// 				</p>
+		// 				<p className="absolute bottom-28 left-1 right-1 text-2xl text-black mb-6">
+		// 					{modalState.title}
+		// 				</p>
+		// 				{modalState.options ? (
+		// 					<div className="absolute bottom-6 left-1 right-1">
+		// 						<div className="flex flex-nowrap w-full justify-evenly">
+		// 							<button
+		// 								className="bg-gradient-to-br relative transition ease-in-out delay-0 hover:-translate-y-1 group/btn from-red-900 dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-[35%] text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+		// 								style={{
+		// 									background:
+		// 										"linear-gradient(0deg, rgba(0, 122, 92, 1) -90%, rgba(0, 0, 0, 1))",
+		// 								}}
+		// 								onClick={() => {
+		// 									onOptionSelect(true);
+		// 								}}
+		// 							>
+		// 								Confirm
+		// 							</button>
+		// 							<button
+		// 								className="bg-gradient-to-br border-2 transition ease-in-out delay-0 hover:-translate-y-1 border-red-900 relative group/btn block dark:bg-zinc-800 w-[35%] text-red-900 rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+
+		// 								onClick={() => {
+		// 									onOptionSelect(false);
+		// 								}}
+		// 							>
+		// 								Cancel
+		// 							</button>
+		// 						</div>
+		// 					</div>
+		// 				) : (
+		// 					<></>
+		// 				)}
+		// 			</motion.div>
+		// 		</motion.div>
+		// 	)}
+		// </AnimatePresence>
+    <AnimatePresence>
+    {toastState.show && (
       <motion.div
-        className="relative w-full max-w-[900px] border-[3px] border-yellow-400 rounded-xl shadow-xl overflow-hidden p-6"
-        style={{
-          backgroundImage: `linear-gradient(to top, #1c1c1c, #4a0000), url(${logo})`,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
-          boxShadow: '0 0 20px rgba(255, 215, 0, 0.6)',
-        }}
-        variants={modal}
+        className="fixed bottom-6 right-6 z-50"
+        variants={toastVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
       >
-        {/* Close Button */}
-        <button
-          className="absolute top-4 right-4 text-yellow-400 text-2xl font-bold hover:text-red-500 transition-all z-50"
-          onClick={handleCancel}
-        >
-          ✕
-        </button>
-
-        {/* Modal content */}
-        <div className="z-10 relative backdrop-blur-sm p-4">
-          <h2 className="text-center text-3xl font-extrabold text-yellow-400 drop-shadow-md font-mono">
-            🎰 JOIN A RANDOM BOARD 🎲
-          </h2>
-
-          <LabelInputContainer className="mt-6">
-            <Label
-              htmlFor="options"
-              className="block text-lg text-yellow-300 font-mono mb-2"
-            >
-              SELECT YOUR BET
-            </Label>
-            <select
-              id="options"
-              name="options"
-              value={selectedOption}
-              onChange={handleSelectChange}
-              className="w-full h-12 bg-black text-yellow-300 border-2 border-yellow-400 rounded-lg font-mono text-lg px-3 shadow-inner"
-            >
-              {["R5", "R10", "R15", "R20", "R25", "R30", "R35", "R40"].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </LabelInputContainer>
-
+        <div className="relative flex items-center max-w-sm px-6 py-4 bg-white border-l-4 rounded shadow-lg border-red-900">
+          <div className="absolute top-[-15px] right-[-15px] w-10 h-10 rounded-full bg-red-900 flex items-center justify-center">
+            {/* Icon or placeholder */}
+            <Icons icon={toastState.icon || 'bell'} />
+          </div>
+          <div className="ml-4">
+            <p className="text-lg font-semibold text-red-900">{toastState.title}</p>
+            <p className="text-sm text-gray-800">{toastState.message}</p>
+          </div>
           <button
-            onClick={handleSubmit}
-            className="mt-8 w-full py-3 bg-gradient-to-br from-yellow-400 to-red-600 text-black font-extrabold font-mono rounded-lg text-xl shadow-[0_4px_10px_rgba(0,0,0,0.5)] hover:scale-105 hover:brightness-110 transition-all"
+            onClick={onDismiss}
+            className="absolute top-2 right-2 text-sm text-red-800 hover:underline"
           >
-            🃏 PLAY NOW 🃏
+            X
           </button>
         </div>
       </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-  )
+    )}
+  </AnimatePresence>
+	);
 }
 
-const LabelInputContainer = ({ children, className }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
-};
-
-export default BoardGenerator;
+export default Modal;

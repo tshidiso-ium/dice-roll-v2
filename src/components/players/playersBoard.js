@@ -38,7 +38,9 @@ const Playersboard = () => {
   useEffect(()=> {
     console.log(data);
     if(data){
-        setPlayers(data.players);
+        const filteredPlayers = Object.entries(data.players).filter(([key, player]) => player.hasOwnProperty('bet'));
+        const playersWithBet = Object.fromEntries(filteredPlayers);
+        setPlayers(playersWithBet);
     }
   }, [data])
 
@@ -67,27 +69,27 @@ const Playersboard = () => {
                 {
                     players ? 
                     <>
-                    {sortedEntries.map(([key, member], index) => (
-    
-                        <div className={`grid grid-cols-5 h-[35px] space-y-0 w-full mt-0 ${ key === userId ? "bg-slate-200": "" } `}>
-                            <div className="text-balance content-center text-sm">
-                                {1 + index}.                                    
-                            </div>
+                        {sortedEntries.map(([key, member], index) => (
+        
+                            <div className={`grid grid-cols-5 h-[35px] space-y-0 w-full mt-0 ${ key === userId ? "bg-slate-200": "" } `}>
+                                <div className="text-balance content-center text-sm">
+                                    {1 + index}.                                    
+                                </div>
 
-                            <div className="flex col-span-2 text-balance content-center text-sm pt-2 pb-2">       
-                                <Avatar
-                                    alt={member.userName} // Alt text for the Avatar
-                                    src={member.picture} // Source of the Avatar image
-                                    sx={{ width: 24, height: 24 }} // Styling for the Avatar
-                                />                           
-                            <labe className={`pl-2 text-sm text-balance align-middle text-center `}> {member.userName}</labe>
+                                <div className="flex col-span-2 text-balance content-center text-sm pt-2 pb-2">       
+                                    <Avatar
+                                        alt={member.userName} // Alt text for the Avatar
+                                        src={member.picture} // Source of the Avatar image
+                                        sx={{ width: 24, height: 24 }} // Styling for the Avatar
+                                    />                           
+                                <labe className={`pl-2 text-sm text-balance align-middle text-center `}> {member.userName}</labe>
+                                </div>
+                                <label htmlFor="position" className="text-balance pl-[1%] content-center text-sm">{member.score}</label>
+                                <label htmlFor="Department" className="text-balance pl-[1%] content-center text-sm">
+                                    <Chip label={member.status}  size="small" color={member.chip_colour} variant="outlined"/>
+                                </label>
                             </div>
-                            <label htmlFor="position" className="text-balance pl-[1%] content-center text-sm">{member.score}</label>
-                            <label htmlFor="Department" className="text-balance pl-[1%] content-center text-sm">
-                                <Chip label={member.status}  size="small" color={member.chip_colour} variant="outlined"/>
-                            </label>
-                        </div>
-                    ))}
+                        ))}
                     </>
                     :
                     <>

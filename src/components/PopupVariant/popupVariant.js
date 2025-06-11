@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WindowSize from '../../modules/windowSize';
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { cn } from '../utils/cn';
+import logo from '../../images/dice-red.jpg'
 
 
 const backdrop = {
@@ -11,11 +15,11 @@ const backdrop = {
 
 function ModalProps () {
   const device = WindowSize();
-  console.log('device width: ', device.width);
+  // console.log('device width: ', device.width);
   return {
     hidden: { y: "-100vh", opacity: 0 },
     visible: { 
-      y: `${device.width < 1540 ? '250px' : '550px' }`, 
+      y: `${device.width < 1540 ? '200px' : '200px' }`, 
       opacity: 1,
       transition: { delay: 0.2 }
     }
@@ -217,31 +221,132 @@ function Icons({ icon }) {
   }
 }
 
-const Modal = ({ modalState}) => {  
+const PlayAgain = ({modalState, joinRandomBoard}) => {  
   const modal = ModalProps()
+  const [selectedOption, setSelectedOption] = useState('R5');  // Initialize state with the default value
+
+  // Handle the change event for the select dropdown
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);  // Update the selected option state
+  };
+
+  // Function to handle form submission (or any other action with the selected option)
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // console.log('Selected option:', selectedOption);  // Log or return the selected option
+    joinRandomBoard( {"playAgain": true, "betAmount": selectedOption });
+    // You can add further logic here to process the selected option
+  };
+
+  
+  // Function to handle form submission (or any other action with the selected option)
+  const handleCancel = () => {
+    joinRandomBoard(0);
+    // You can add further logic here to process the selected option
+  };
+
+
   return (
     <AnimatePresence >
       { modalState.showModal && (
         <motion.div 
-            className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 "
+            className="fixed w-full h-full bg-black bg-opacity-50 z-50 backdrop-blur-none"
             variants={backdrop}
             initial="hidden"
             animate="visible"
             exit="hidden"
         >
-            <motion.div className="max-w-[400px] max-h-[400px] h-[300px] mx-auto p-10  border-b-4 border-l-2 border-r-2 border-t-2  bg-white rounded-lg text-center border-zinc-800 bg-gradient-to-t from-zinc-700 from-2% via-gray-50 via-5% to-gray-50 to-25%"
-                variants={modal}
-            >
-                <div className="absolute scale-50 top-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-zinc-800 ">
-                  <Icons  icon={modalState.icon}/>
+          <div className='flex justify-center'>
+          <motion.div 
+            className="max-w-[900px] max-h-[800px] h-auto mx-2 border-b-4 border-l-2 border-r-2 border-t-2 bg-white rounded-lg text-center border-red-900 bg-gradient-to-t from-red-900 via-gray-50 to-gray-50 overflow-hidden"
+            style={{ backgroundImage: `url(${logo})`,
+              backgroundRepeat: 'no-repeat',  // Ensures the background image doesn't repeat
+              backgroundSize: 'cover'        // Ensures the image covers the entire div area without stretching
+              }} // Make sure logo is a valid URL string
+            
+            variants={modal} // Assuming modal is a valid Framer Motion variant
+          >
+                {/* <div className="absolute left-1/2 transform -translate-x-1/2  w-full h-72 ">
+                    <img src={logo}>
+                    </img>
+                </div> */}
+                <div className='flex flex-wrap relative z-50 p-8 backdrop-blur-sm'>
+                <label
+                  htmlFor="Department"
+                  className="text-balance content-center text-2xl text-gray-400 font-mono z-20 w-full"
+                  >
+                  {modalState.text}
+                </label>
+                <label
+                  htmlFor="Department"
+                  className="text-balance content-center text-2xl text-gray-400 font-mono z-20 w-full"
+                  >
+                  {modalState.title}
+                </label>
+                <LabelInputContainer className="mt-3">
+                    <Label htmlFor="fullname" className="flex justify-start font-mono text-gray-400 absolute right-4 top-2 text-1xl hover:-translate-y-1 hover:text-2xl cursor-pointer"
+                      onClick={handleCancel}>X</Label>
+                    <Label htmlFor="fullname" className="flex justify-center font-mono text-gray-400 w-full" >BET AMOUNT</Label>
+                    <select 
+                      name="options" 
+                      id="options" 
+                      className='font-mono text-gray-400 h-10 text-lg w-full rounded-lg border-2 border-red-900'
+                      value={selectedOption} // Bind the selected option state to the select dropdown
+                      onChange={handleSelectChange} // Handle the change event
+                    >
+                      <option value="R5">R5</option>
+                      <option value="R10">R10</option>
+                      <option value="R15">R15</option>
+                      <option value="R20">R20</option>
+                      <option value="R25">R25</option>
+                      <option value="R30">R30</option>
+                      <option value="R35">R35</option>
+                      <option value="R40">R40</option>
+                    </select>
+                    <div className='flex flex-nowrap w-full'>
+                      <button
+                        className="backdrop-blur-lg m-3 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 border-2 border-red-900  bg-white  relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-red-900 rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                        type="submit"
+                        onClick={handleCancel}
+                        >
+                          {modalState.id === modalState.winer.playerId ? 
+                            "QUIT"
+                            :
+                            "GIVE UP"
+                          }
+                      </button>
+                      <button
+                        className="m-3 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                        type="submit"
+                        onClick={handleSubmit}
+                        >
+                          {modalState.id === modalState.winer.playerId ? 
+                            "WIN"
+                            :
+                            "TRY AGAIN"
+                          }
+                      </button>
+                    </div>
+
+                </LabelInputContainer>
                 </div>
-                <p className='absolute bottom-28 left-1 right-1 text-lg text-black mb-6 '>{modalState.text}</p>
-                <p className='absolute bottom-16 left-1 right-1 text-4xl text-black mb-3 '>{modalState.title}</p>
+
           </motion.div>
+          </div>
+
         </motion.div>
       )}
     </AnimatePresence>
   )
 }
 
-export default Modal;
+const LabelInputContainer = ({ children, className }) => {
+  return (
+    <div className={cn("flex flex-col space-y-2 w-full", className)}>
+      {children}
+    </div>
+  );
+};
+
+
+export default PlayAgain;

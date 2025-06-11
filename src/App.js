@@ -11,7 +11,8 @@ import Game from './components/game/game';
 import React, { useState, useEffect } from 'react';
 
 function App() {
-  const [joinedBoard, setJoinedBoard] = useState('')
+  const [joinedBoard, setJoinedBoard] = useState('');
+  const [playAgain, setPlayAgain] = useState(null);
   const [userLogedIn, setUserLogedIn] = useState(false)
 
 
@@ -36,6 +37,19 @@ function App() {
     setJoinedBoard(boardId)
     localStorage.setItem("joinedBoard", boardId );
  }
+
+ const onGameConclusion = (res) => {
+    console.log("Game res: ",res)
+    console.log("Game Conclusion");
+    if(res === 0){
+      setJoinedBoard('');
+       setPlayAgain(0);
+    }
+    else{
+        setJoinedBoard('');
+        setPlayAgain(res);
+    }
+ }
   return (
     <div className="App">
     {/* <Register/>    */}
@@ -47,11 +61,11 @@ function App() {
             {
               joinedBoard ? 
               <>
-              <Game/>
+                <Game gameConclusion ={onGameConclusion}/>
               </>
               :
               <>            
-              <Boards boardJoined = {onJoinedBoard}/>
+                <Boards boardJoined = {onJoinedBoard} playAgain ={playAgain}/>
               </>
             }
             
