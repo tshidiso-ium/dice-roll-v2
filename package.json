@@ -9,18 +9,19 @@
     "@mui/material": "^5.15.14",
     "@mui/x-charts": "^7.0.0",
     "@radix-ui/react-label": "^2.0.2",
-    "framer-motion": "^11.2.10",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "clsx": "^2.1.1",
     "firebase": "^10.13.0",
+    "framer-motion": "^11.2.10",
     "react": "^18.3.1",
     "react-dice-roll": "^1.2.2",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.8.2",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.3.0"
+    "tailwind-merge": "^2.3.0",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",

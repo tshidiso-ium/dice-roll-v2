@@ -1,108 +1,77 @@
-import { useState, createRef } from "react";
-import logo from '../../images/dice-red.jpg'
+import { useState } from "react";
+import logo from '../../images/dice-red.jpg';
 
-export default function NavMobile({userLogedOut}) {
+export default function NavMobile({ userLogedOut, redirect }) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropContainer = createRef();
-  const navContainer = createRef();
 
   const items = [
-    {
-      name: "Logout",
-      href: "/",
-      key: "Home"
-    },
-    {
-      name: "About",
-      href: "/",
-      key: "About"
-    },
-    {
-      name: "Extract",
-      href: "/",
-      key: "Extract"
-    },
-    {
-      name: "Contact",
-      href: "",
-      key: "Contact"
-    }
+    { name: "Logout", href: "/", key: "Logout" },
+    { name: "Play", href: "/home", key: "Play" },
+    { name: "Account", href: "/account", key: "Account" },
+    // { name: "Contact", href: "/contact", key: "Contact" }
   ];
 
-  const handleClick = () => {
+  const handleToggle = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleManueClick = (e) => {
-    if(e.name ==="Logout"){
+  const handleMenuClick = (item) => {
+    if (item.name === "Logout") {
       userLogedOut();
     }
-  }
+    else {
+        redirect(item.href);
+    }
+    setIsOpen(false); // close menu after click
+  };
 
   return (
-    <div
-      onClick={handleClick}
-      className="relative flex-1 w-full h-[80px] justify-center items-center z-50 bg-transparent backdrop-blur-md"
-    >
-
-      <div className={`bg-white h-full flex justify-between w-full z-50`}>
-            <img src={logo}>
-        </img>
-        <a
-          href="/"
-          passHref
-          className="w-full h-full text-left pt-5"
-        >
-          <p className="text-red-700 text-gradient text-[25px] font-IvyJournal font-[400] ">
-            Dice Role
-          </p>
-        </a>
-        <div className={`p-2 mr-[0.5rem] mt-6`}>
-          <span
-            className={`bg-red-700 block transition  duration-300 ease-out h-0.5 w-7 rounded-sm ${isOpen
-              ? "rotate-45 translate-y-1"
-              : "-translate-y-0.5"}`}
-          />
-          <span
-            className={`bg-red-700 block transition duration-300 ease-out h-0.5 w-9 rounded-sm my-0.5 ${isOpen
-              ? "opacity-0"
-              : "opacity-100 -translate-x-2"}`}
-          />
-          <span
-            className={`bg-red-700 bg-red block transition duration-300 ease-out h-0.5 w-7 rounded-sm ${isOpen
-              ? "-rotate-45 -translate-y-1"
-              : "translate-y-0.5"}`}
-          />
+    <div className="relative w-full z-50">
+      {/* Top Nav */}
+      <div
+        onClick={handleToggle}
+        className=" bg-gradient-to-r from-black via-red-900 to-black h-[80px] flex justify-between items-center px-4 cursor-pointer"
+      >
+        <img src={logo} alt="Dice Logo" className="h-[60px] w-auto" />
+        <p className="text-white text-[25px] font-IvyJournal font-[400]">
+          Dice Roll
+        </p>
+        <div className="p-2">
+          {/* Hamburger Menu Icon */}
+          <div className="space-y-1">
+            <span
+              className={`block h-0.5 w-7 bg-white rounded-sm transform transition 
+                ${isOpen ? "rotate-45 translate-y-1" : "-translate-y-0.5"}`}
+            />
+            <span
+              className={`block h-0.5 w-7 bg-white rounded-sm transition 
+                ${isOpen ? "opacity-0" : "opacity-100"}`}
+            />
+            <span
+              className={`block h-0.5 w-7 bg-white rounded-sm transform transition 
+                ${isOpen ? "-rotate-45 -translate-y-1" : "translate-y-0.5"}`}
+            />
+          </div>
         </div>
       </div>
-      <div class="backdrop-blur-xl bg-white/30 ...">
-            <div
-        ref={dropContainer}
-        className={`${!isOpen
-          ? "h-0 overflow-hidden fixed top-0 w-full z-50"
-          : "bg-white/80 backdrop-blur-md backdrop-brightness-150"}`}
+
+      {/* Dropdown Menu */}
+      <div
+        className={`transition-all duration-300 ease-in-out bg-white/80 backdrop-blur-md 
+          ${isOpen ? "h-screen opacity-100" : "h-0 opacity-0 overflow-hidden"}`}
       >
-        <nav
-          ref={navContainer}
-          className={`w-full h-screen pb-[32px] z-50`}
-        >
-          {items.map(x => {
-            return (
-              <div key={x.key} className="w-full p-4 text-left pt-6">
-                <p
-                  className={`text-red-800 w-full block text-gradient pt-[32px] pl-[32px] font-[400] cursor-pointer`}
-                  onClick={() => {handleManueClick(x) }}
-                >
-                  {x.name.toUpperCase()}
-                </p>
-              </div>
-            );
-          })}
+        <nav className="flex flex-col w-full pt-10">
+          {items.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => handleMenuClick(item)}
+              className="text-left px-8 py-4 text-red-800 font-bold text-lg hover:bg-red-100 transition"
+            >
+              {item.name.toUpperCase()}
+            </button>
+          ))}
         </nav>
       </div>
-</div>
-
-
     </div>
   );
 }

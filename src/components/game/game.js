@@ -22,6 +22,7 @@ function Game ({gameConclusion}) {
     const [data, setData] = useState(null);
     const [gameInfo, setGameInfo] = useState('');
     const [userInfo, setUserInfo] = useState('');
+    var betAmount = localStorage.getItem("betAmount");
     var boardId = localStorage.getItem("joinedBoard");
     const [modalState, setStateModal] = useState({
         showModal: false,
@@ -34,7 +35,7 @@ function Game ({gameConclusion}) {
 
     useEffect(() => {
         // Reference to the Firebase database path you want to listen to
-        const dataRef = ref(database, `boards/${boardId}`);
+        const dataRef = ref(database, `boards/live/${betAmount}/${boardId}`);
         console.log("Data ref:", dataRef)
         // Listener for real-time updates
         const handleDataChange = (snapshot) => {
@@ -96,14 +97,14 @@ function Game ({gameConclusion}) {
     }
 
     return (
-        <>         
+        <div className="bg-gradient-to-r from-black via-red-900 to-black bg-opacity-90">         
             <PlayAgain modalState={modalState} joinRandomBoard={handleOptionSelect} />
-            <GameInfo myScore= {myScore}/>
+            <GameInfo myScore= {myScore} />
             <Playersboard/> 
             <DiceRoller updateMyScore={handleScoreChange}/>
-        </>
+        </div>
     )
 }
 
-export default Game;
+export default Game; 
 

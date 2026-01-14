@@ -17,7 +17,8 @@ export default function DiceRoller({updateMyScore}) {
   const diceRef2 = useRef(null)
   var userId = localStorage.getItem("userId" );
   var boardId = localStorage.getItem("joinedBoard");
-  var userRef = ref(database, `boards/${boardId}/players/${userId}`); 
+  var betAmount = localStorage.getItem("betAmount");
+  var userRef = ref(database, `boards/live/${betAmount}/${boardId}/players/${userId}`); 
 
   useEffect( () => {
     getScore();
@@ -44,7 +45,7 @@ export default function DiceRoller({updateMyScore}) {
 
   const rollDice = async () => {
     console.log("is rolling ", rolling);
-    const diceRoleRes = await rollDeDice(boardId);
+    const diceRoleRes = await rollDeDice(boardId, betAmount);
     if (diceRef.current && diceRef2.current ) {
       setRolling(true);
     }
@@ -85,48 +86,56 @@ const getScore = () => {
     };
 };
 
+const safeNumber = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+const sum = safeNumber(dice1) + safeNumber(dice2);
+
 
   return (
-    <div className="flex flex-wrap items-center justify-evenly p-5 pt-5">
-        <div className={`flex flex-col justify-evenly absolute box-border h-32 w-32 p-4 ${rolling ? 'opacity-0' : 'animate-floatUp'}  `}>
-            <p className={`flex justify-center text-7xl ${ dice1 + dice2 === 7 ? 'text-red-600' : dice1 + dice2 === 0 ? 'text-transparent' :'text-green-600'}`}>
-                  +{ dice1 + dice2}
-            </p>
-        </div>
-        <div className='w-full p-4'>
-            <p className="flex justify-center text-l">
-              {
-                 userData && userData.status === "Rolling" ? 
-                <>
-                  Click Dice To Roll
-                </>
-                :
-                <>
-                  You Are Out
-                </>
-              }
-          
-            </p>
-        </div>
-      {
-          <div className="flex flex-nowrap z-10 mt-2"         
-                onClick={ userData && userData.status === "Rolling" ?  !rolling ? rollDice : null : null} 
-            >
-            <div className={`flex flex-col justify-evenly h-32 w-32 p-4 ${rolling ? 'dice-rolling-One' : ''} z-0`}>
-              <Dice ref={diceRef2} cheatValue={dice1} size={100} triggers={rolling ? [] : ['click']} />
-            </div>
-            <div className={`flex flex-col justify-evenly h-32 w-32 p-4 ${rolling ? 'dice-rolling-Two' : ''} z-0`}>
-              <Dice ref={diceRef} cheatValue={dice2} size={100} triggers={rolling ? [] : ['click']} />
-            </div>
-          </div>
+    <div className="flex flex-wrap items-center justify-evenly p-5 pt-5 bg-opacity-90 rounded-lg bg-transparent ">
+      {/* Floating Score Result */}
+      <div className={`flex flex-col justify-evenly absolute h-32 w-32 p-4 ${rolling ? 'opacity-0' : 'animate-floatUp'}`}>
+        <p
+          className={`flex justify-center text-7xl font-extrabold drop-shadow-lg
+            ${sum === 7
+              ? "text-yellow-400 animate-pulse"
+              : sum === 0
+                ? "text-transparent"
+                : "text-green-500"
+            }`}
+        >
+          +{sum}
+        </p>
+      </div>
 
-      } 
+      {/* Rolling Status Text */}
+      <div className="w-full p-4 text-center">
+        <p className="text-lg text-yellow-300 font-mono tracking-wide">
+          {userData?.status === "Rolling" ? "🎲 Click Dice To Roll" : "❌ You Are Out"}
+        </p>
+      </div>
 
+      {/* Dice Container */}
+      <div
+        className="flex flex-nowrap z-10 mt-2 gap-6 cursor-pointer"
+        onClick={userData?.status === "Rolling" && !rolling ? rollDice : undefined}
+      >
+        {/* Dice One */}
+        <div className={`flex flex-col justify-evenly h-32 w-32 p-4 rounded-lg
+          ${rolling ? 'dice-rolling-One' : 'hover:border-yellow-400'} transition duration-300`}>
+          <Dice ref={diceRef2} cheatValue={dice1} size={100} triggers={rolling ? [] : ['click']} />
+        </div>
+
+        {/* Dice Two */}
+        <div className={`flex flex-col justify-evenly h-32 w-32 p-4 rounded-lg 
+          ${rolling ? 'dice-rolling-Two' : 'hover:border-yellow-400'} transition duration-300`}>
+          <Dice ref={diceRef} cheatValue={dice2} size={100} triggers={rolling ? [] : ['click']} />
+        </div>
+      </div>
     </div>
   );
 }
 
-const rollDeDice = async (boardId) => {
+const rollDeDice = async (boardId, betAmount) => {
     try{
         const userId = localStorage.getItem("userID");
         const idToken = localStorage.getItem("idToken");
@@ -142,7 +151,8 @@ const rollDeDice = async (boardId) => {
             "Authorization": `Bearer ${idToken}` 
             },
             body: JSON.stringify({
-            boardId: boardId
+            boardId: boardId,
+            betAmount: betAmount
             })
         });
         console.log(res.status)

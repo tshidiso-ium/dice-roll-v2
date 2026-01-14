@@ -247,7 +247,7 @@ const PlayAgain = ({modalState, joinRandomBoard}) => {
 
 
   return (
-    <AnimatePresence >
+    <AnimatePresence className="bg-transparent">
       { modalState.showModal && (
         <motion.div 
             className="fixed w-full h-full bg-black bg-opacity-50 z-50 backdrop-blur-none"
@@ -305,7 +305,7 @@ const PlayAgain = ({modalState, joinRandomBoard}) => {
                     </select>
                     <div className='flex flex-nowrap w-full'>
                       <button
-                        className="backdrop-blur-lg m-3 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 border-2 border-red-900  bg-white  relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-red-900 rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                        className="backdrop-blur-lg mt-3 mr-2 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 border-2 border-red-900  bg-white  relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-red-900 rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                         type="submit"
                         onClick={handleCancel}
                         >
@@ -316,14 +316,14 @@ const PlayAgain = ({modalState, joinRandomBoard}) => {
                           }
                       </button>
                       <button
-                        className="m-3 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
+                        className="mt-3 ml-2 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
                         type="submit"
                         onClick={handleSubmit}
                         >
                           {modalState.id === modalState.winer.playerId ? 
                             "WIN"
                             :
-                            "TRY AGAIN"
+                            "WIN"
                           }
                       </button>
                     </div>

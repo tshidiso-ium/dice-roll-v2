@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../modules/firebase';
-import logo from '../../images/dice-red.jpg'
+import { auth } from '../modules/firebase';
+import logo from '../images/dice-red.jpg';
 
 const Login = ({userLoggedIn}) => {
   const [email, setEmail] = useState('');
@@ -38,7 +38,6 @@ const Login = ({userLoggedIn}) => {
           text: `Failed to login`
         });
       }
-      // userLogedIn(await signInWithEmailAndPassword(auth, email, password));
       // On successful login, you can redirect or show a success message
     } catch (err) {
       console.log(err);
@@ -54,14 +53,15 @@ const Login = ({userLoggedIn}) => {
 
   return (
     <div className={`flex flex-col items-center justify-center min-h-full`}   
-    style={{
-        backgroundImage: `url(${logo})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        width: '100%',
-        height: '80vh'
-    }}>
+      style={{
+          backgroundImage: `url(${logo})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          width: '100%',
+          height: '80vh'
+      }}
+    >
       <form onSubmit={handleLogin} className="backdrop-blur-xl p-6 rounded shadow-md ">
 
         <h2 className="text-2xl mb-6">Login</h2>
@@ -102,7 +102,6 @@ const verifyUser = async (idToken) => {
   try{
     const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/verifyUser');
     url.searchParams.append('idToken', idToken);
-    console.log(url)
     const res = await fetch(url,{
       method: "GET",
       credentials: "include",

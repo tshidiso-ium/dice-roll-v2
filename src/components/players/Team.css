@@ -39,7 +39,7 @@
 
   .teamMember {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       max-width: 90%;
   }
 

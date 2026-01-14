@@ -1,89 +1,79 @@
-import logo from './logo.svg';
 import './App.css';
-import NavMobile from './components/header/header'
-import Playersboard from './components/players/playersBoard';
-import GameInfo from './components/gameInfo/gameInfo';
-import DiceRoller from './components/dice/dice';
-import Login from './components/login/login';
+import Login from './pages/login';
 import Register from './components/register/register';
-import Boards from './components/boards/boards';
-import Game from './components/game/game';
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route   } from 'react-router-dom';
+import AccountPage from './pages/account';
+import HomePage from './pages/home';
 
 function App() {
-  const [joinedBoard, setJoinedBoard] = useState('');
-  const [playAgain, setPlayAgain] = useState(null);
-  const [userLogedIn, setUserLogedIn] = useState(false)
 
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+
+  useEffect(() => {
+    console.log(userLoggedIn);
+    if (userLoggedIn) {
+      setUserLoggedIn(true);
+      window.location.href = '/home';
+    }
+    else{
+      const { userId, idToken } = getItems("userId", "idToken");
+      if((userId == null || idToken == null) &&  window.location.href !== 'http://localhost:3000/'){
+          window.location.href = '/';
+      }
+      else{
+        setUserLoggedIn(false);
+      }
+    }
+  }, [userLoggedIn]); 
+
+  const getItems = (...keys) => {
+    const results = {};
+    keys.forEach(key => {
+      try {
+        const value = localStorage.getItem(key);
+        results[key] = value ? value : null;
+      } catch (error) {
+        console.error(`Error parsing localStorage key: ${key}`, error);
+        results[key] = null;
+      }
+    });
+    return results;
+  };
 
  const onUserLogin = (userInfo) => {
-  console.log(userInfo)
   if(userInfo.user){
     const user = userInfo.user
     const idToken =  userInfo._tokenResponse;
     localStorage.setItem("userId", user.uid );
     localStorage.setItem("idToken", idToken.idToken );
-            // localStorage.setItem("userId", "admin" );
-    setUserLogedIn(true)
+    setUserLoggedIn(true);
   }
  }
 
   const onUserLogout = () => {
-    setUserLogedIn(false)
- }
-
- const onJoinedBoard = (boardId)  => {
-    console.log("Board Joined");
-    setJoinedBoard(boardId)
-    localStorage.setItem("joinedBoard", boardId );
- }
-
- const onGameConclusion = (res) => {
-    console.log("Game res: ",res)
-    console.log("Game Conclusion");
-    if(res === 0){
-      setJoinedBoard('');
-       setPlayAgain(0);
+    const { userId, idToken } = getItems("userId", "idToken");
+    if((userId == null || idToken == null) &&  window.location.href !== 'http://localhost:3000/'){
+      console.log("window location ref: ", window.location.href)
+      setUserLoggedIn(false)
+      window.location.href = '/';
     }
-    else{
-        setJoinedBoard('');
-        setPlayAgain(res);
-    }
- }
+  }
+
+  const onRedirect = (href) => {
+    console.log("On redirect: ", href);
+    window.location.href = href;
+  }
   return (
-    <div className="App">
-    {/* <Register/>    */}
-      {
-         
-        userLogedIn ? 
-          <>                
-          <NavMobile userLogedOut = {onUserLogout}/>
-            {
-              joinedBoard ? 
-              <>
-                <Game gameConclusion ={onGameConclusion}/>
-              </>
-              :
-              <>            
-                <Boards boardJoined = {onJoinedBoard} playAgain ={playAgain}/>
-              </>
-            }
-            
-
-            {/* <GameInfo myScore= {myScore}/> */}
-
-            {/* <Playersboard/> */}
-            {/* <DiceRoller updateMyScore={handleScoreChange}/>  */}
-            {/* <GameInfo myScore= {myScore}/>
-            <DiceRoller updateMyScore={handleScoreChange}/>               */}
-          </>
-
-          :
-          <>
-             <Login userLogedIn = {onUserLogin}/>
-          </>
-  
-      }
+    <div className="h-screen bg-gradient-to-r from-black via-red-900 to-black text-yellow-300 font-mono">
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<Login userLoggedIn = {onUserLogin}/>} />
+          <Route path="/" exact element={<Login userLoggedIn = {onUserLogin}/>}/>
+          <Route path="/home" element={<HomePage userLoggedOut = {onUserLogout}  redirect={onRedirect}/>} />
+          <Route path="/account"  element={<AccountPage userLoggedOut = {onUserLogout} redirect={onRedirect}/>} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
