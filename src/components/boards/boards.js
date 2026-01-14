@@ -83,11 +83,11 @@ export default function Boards ({boardJoined, playAgain}) {
                 if(result?.status === "success"){
                     console.log("Board ID: ", result.boardId);
                     if(result?.boardId.message){
-                      handleJoinBoard(amount,result.boardId.boardId);
+                      handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId.boardId);
                       updateModelState();
                     }
                     else{
-                      handleJoinBoard(amount,result.boardId);
+                      handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId);
                       updateModelState();
                     }
 
