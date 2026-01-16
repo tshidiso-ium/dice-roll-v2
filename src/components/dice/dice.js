@@ -15,6 +15,7 @@ export default function DiceRoller({updateMyScore}) {
   const [canVibrat, setCanVibrate] = useState('');
   const diceRef = useRef(null);
   const diceRef2 = useRef(null)
+  //clear storage once playing again
   var userId = localStorage.getItem("userId" );
   var boardId = localStorage.getItem("joinedBoard");
   var betAmount = localStorage.getItem("betAmount");
@@ -34,6 +35,7 @@ export default function DiceRoller({updateMyScore}) {
   }, []);
 
   useEffect(() => {
+    console.log("userData changed:", userData);
     if( userData && userData.status === "Rolling"){
         diceRef.current.rollDice();
         diceRef2.current.rollDice();

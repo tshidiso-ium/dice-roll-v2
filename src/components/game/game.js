@@ -11,7 +11,7 @@ function Game ({gameConclusion}) {
     const handleScoreChange = (score) => {
         console.log(score);
         if (score === 7) {
-        setMyScore(0)
+            setMyScore(0)
         }else{
         setTimeout( () => {
             setMyScore(myScore + score) 
@@ -52,40 +52,42 @@ function Game ({gameConclusion}) {
     }, []);
 
     useEffect(()=> {
-        if(data){
-            setGameInfo(data);
-            const user = data.players
-            console.log(user)
-            const id = localStorage.getItem("userId" );;
-            // setUserInfo(getDataById(user, id))
+        if (data) {
+        setGameInfo(data);
+        const user = data.players;
+        console.log(user);
+        const id = localStorage.getItem("userId");
 
-            if(data.winnerIs){
-                console.log("Winner: ", data.winnerIs);
-                if(data.winnerIs.playerId ===id)
-                {
-                    setStateModal({
-                        showModal: true,
-                        text: `The winer is ${data.winnerIs.playerName}`,
-                        title: "WELL DONE!",
-                        icon: "warn",
-                        options: true,
-                        winer: data.winnerIs,
-                        id: id
-                    });
-                }
-                else {
-                    setStateModal({
-                        showModal: true,
-                        text: `The winer of the game is ${data.winnerIs.playerName}`,
-                        title: "TOUGH LUCK",
-                        icon: "warn",
-                        options: true,
-                        winer: data.winnerIs,
-                        id: id
-                    });
-                }
+        if (data.winnerIs) {
+            console.log("Winner: ", data.winnerIs);
 
+            const isWinner = data.winnerIs.playerId === id;
+
+            // wait 2 seconds before showing the modal
+            setTimeout(() => {
+            if (isWinner) {
+                setStateModal({
+                showModal: true,
+                text: `The winner is ${data.winnerIs.playerName}`,
+                title: "WELL DONE!",
+                icon: "warn",
+                options: true,
+                winer: data.winnerIs,
+                id: id,
+                });
+            } else {
+                setStateModal({
+                showModal: true,
+                text: `The winner of the game is ${data.winnerIs.playerName}`,
+                title: "TOUGH LUCK",
+                icon: "warn",
+                options: true,
+                winer: data.winnerIs,
+                id: id,
+                });
             }
+            }, 2000); // 2000ms = 2 seconds
+        }
         }
     }, [data]);
 

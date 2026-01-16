@@ -1,29 +1,25 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WindowSize from '../../modules/windowSize';
-import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { cn } from '../utils/cn';
-import logo from '../../images/dice-red.jpg'
-
+import logo from '../../images/dice-red.jpg';
 
 const backdrop = {
   visible: { opacity: 1 },
   hidden: { opacity: 0 },
-}
+};
 
-
-function ModalProps () {
+function ModalProps() {
   const device = WindowSize();
-  // console.log('device width: ', device.width);
   return {
     hidden: { y: "-100vh", opacity: 0 },
-    visible: { 
-      y: `${device.width < 1540 ? '200px' : '200px' }`, 
+    visible: {
+      y: `${'0px'}`,
       opacity: 1,
       transition: { delay: 0.2 }
     }
-  }
+  };
 }
 
 function Icons({ icon }) {
@@ -32,108 +28,56 @@ function Icons({ icon }) {
       return (
         <svg
           className='absolute top-11 left-11'
-          version="1.1"
-          id="Capa_1"
           xmlns="http://www.w3.org/2000/svg"
-          x="0px"
-          y="0px"
           viewBox="0 0 512 512"
           width="200px"
           height="200px"
           fill="White"
         >
-          <g>
-            <g>
-              <path
-                d="M256,0C114.833,0,0,114.833,0,256s114.833,256,256,256s256-114.853,256-256S397.167,0,256,0z M256,472.341
-			c-119.275,0-216.341-97.046-216.341-216.341S136.725,39.659,256,39.659c119.295,0,216.341,97.046,216.341,216.341
-			S375.275,472.341,256,472.341z"
-              />
-            </g>
-          </g>
-          <g>
-            <g>
-              <path
-                d="M373.451,166.965c-8.071-7.337-20.623-6.762-27.999,1.348L224.491,301.509l-58.438-59.409
-			c-7.714-7.813-20.246-7.932-28.039-0.238c-7.813,7.674-7.932,20.226-0.238,28.039l73.151,74.361
-			c3.748,3.807,8.824,5.929,14.138,5.929c0.119,0,0.258,0,0.377,0.02c5.473-0.119,10.629-2.459,14.297-6.504l135.059-148.722
-			C382.156,186.854,381.561,174.322,373.451,166.965z"
-              />
-            </g>
-          </g>
+          <path d="M256,0C114.833,0,0,114.833,0,256s114.833,256,256,256s256-114.853,256-256S397.167,0,256,0z M256,472.341
+            c-119.275,0-216.341-97.046-216.341-216.341S136.725,39.659,256,39.659c119.295,0,216.341,97.046,216.341,216.341
+            S375.275,472.341,256,472.341z" />
+          <path d="M373.451,166.965c-8.071-7.337-20.623-6.762-27.999,1.348L224.491,301.509l-58.438-59.409
+            c-7.714-7.813-20.246-7.932-28.039-0.238c-7.813,7.674-7.932,20.226-0.238,28.039l73.151,74.361
+            c3.748,3.807,8.824,5.929,14.138,5.929c0.119,0,0.258,0,0.377,0.02c5.473-0.119,10.629-2.459,14.297-6.504l135.059-148.722
+            C382.156,186.854,381.561,174.322,373.451,166.965z" />
         </svg>
       );
     case "warn":
       return (
         <svg
           className='absolute top-11 left-11'
-          version="1.1"
-          id="Capa_1"
           xmlns="http://www.w3.org/2000/svg"
-          x="0px"
-          y="0px"
           viewBox="0 0 512 512"
           width="200px"
           height="200px"
           fill="White"
         >
-          <g>
-            <g>
-              <path
-                d="M256,0C114.497,0,0,114.507,0,256c0,141.503,114.507,256,256,256c141.503,0,256-114.507,256-256
-			C512,114.497,397.493,0,256,0z M256,472c-119.393,0-216-96.615-216-216c0-119.393,96.615-216,216-216
-			c119.393,0,216,96.615,216,216C472,375.393,375.385,472,256,472z"
-              />
-            </g>
-          </g>
-          <g>
-            <g>
-              <path
-                d="M256,128.877c-11.046,0-20,8.954-20,20V277.67c0,11.046,8.954,20,20,20s20-8.954,20-20V148.877
-			C276,137.831,267.046,128.877,256,128.877z"
-              />
-            </g>
-          </g>
-          <g>
-            <g>
-              <circle cx="256" cy="349.16" r="27" />
-            </g>
-          </g>
+          <path d="M256,0C114.497,0,0,114.507,0,256c0,141.503,114.507,256,256,256c141.503,0,256-114.507,256-256
+            C512,114.497,397.493,0,256,0z M256,472c-119.393,0-216-96.615-216-216c0-119.393,96.615-216,216-216
+            c119.393,0,216,96.615,216,216C472,375.393,375.385,472,256,472z" />
+          <path d="M256,128.877c-11.046,0-20,8.954-20,20V277.67c0,11.046,8.954,20,20,20s20-8.954,20-20V148.877
+            C276,137.831,267.046,128.877,256,128.877z" />
+          <circle cx="256" cy="349.16" r="27" />
         </svg>
       );
     case "unapproved":
       return (
         <svg
           className='absolute top-11 left-11'
-          version="1.1"
-          id="Capa_1"
           xmlns="http://www.w3.org/2000/svg"
-          x="0px"
-          y="0px"
           viewBox="0 0 512 512"
           width="200px"
           height="200px"
           fill="White"
         >
-          <g>
-            <g>
-              <path
-                d="M256,0C114.508,0,0,114.497,0,256c0,141.493,114.497,256,256,256c141.492,0,256-114.497,256-256
-			C512,114.507,397.503,0,256,0z M256,472c-119.384,0-216-96.607-216-216c0-119.385,96.607-216,216-216
-			c119.384,0,216,96.607,216,216C472,375.385,375.393,472,256,472z"
-              />
-            </g>
-          </g>
-          <g>
-            <g>
-              <path
-                d="M343.586,315.302L284.284,256l59.302-59.302c7.81-7.81,7.811-20.473,0.001-28.284c-7.812-7.811-20.475-7.81-28.284,0
-			L256,227.716l-59.303-59.302c-7.809-7.811-20.474-7.811-28.284,0c-7.81,7.811-7.81,20.474,0.001,28.284L227.716,256
-			l-59.302,59.302c-7.811,7.811-7.812,20.474-0.001,28.284c7.813,7.812,20.476,7.809,28.284,0L256,284.284l59.303,59.302
-			c7.808,7.81,20.473,7.811,28.284,0C351.398,335.775,351.397,323.112,343.586,315.302z"
-              />
-            </g>
-          </g>
+          <path d="M256,0C114.508,0,0,114.497,0,256c0,141.493,114.497,256,256,256c141.492,0,256-114.497,256-256
+            C512,114.507,397.503,0,256,0z M256,472c-119.384,0-216-96.607-216-216c0-119.385,96.607-216,216-216
+            c119.384,0,216,96.607,216,216C472,375.385,375.393,472,256,472z" />
+          <path d="M343.586,315.302L284.284,256l59.302-59.302c7.81-7.81,7.811-20.473,0.001-28.284c-7.812-7.811-20.475-7.81-28.284,0
+            L256,227.716l-59.303-59.302c-7.809-7.811-20.474-7.811-28.284,0c-7.81,7.811-7.81,20.474,0.001,28.284L227.716,256
+            l-59.302,59.302c-7.811,7.811-7.812,20.474-0.001,28.284c7.813,7.812,20.476,7.809,28.284,0L256,284.284l59.303,59.302
+            c7.808,7.81,20.473,7.811,28.284,0C351.398,335.775,351.397,323.112,343.586,315.302z" />
         </svg>
       );
     case "loading":
@@ -221,124 +165,133 @@ function Icons({ icon }) {
   }
 }
 
-const PlayAgain = ({modalState, joinRandomBoard}) => {  
-  const modal = ModalProps()
-  const [selectedOption, setSelectedOption] = useState('R5');  // Initialize state with the default value
+const PlayAgain = ({ modalState, joinRandomBoard }) => {
+  const modal = ModalProps();
+  const [selectedOption, setSelectedOption] = useState('R5');
 
-  // Handle the change event for the select dropdown
   const handleSelectChange = (event) => {
-    setSelectedOption(event.target.value);  // Update the selected option state
+    setSelectedOption(event.target.value);
   };
 
-  // Function to handle form submission (or any other action with the selected option)
   const handleSubmit = (event) => {
     event.preventDefault();
-    // console.log('Selected option:', selectedOption);  // Log or return the selected option
-    joinRandomBoard( {"playAgain": true, "betAmount": selectedOption });
-    // You can add further logic here to process the selected option
+    clearGameStorage();
+    joinRandomBoard({ playAgain: true, betAmount: selectedOption });
   };
 
-  
-  // Function to handle form submission (or any other action with the selected option)
   const handleCancel = () => {
+    clearGameStorage();
     joinRandomBoard(0);
-    // You can add further logic here to process the selected option
   };
 
+  function clearGameStorage() {
+    try {
+        localStorage.removeItem("joinedBoard");
+        localStorage.removeItem("betAmount");
+    } catch (err) {
+        console.error("Error clearing localStorage", err);
+    }
+  }
+
+
+  const isWinner = modalState?.id === modalState?.winer?.playerId;
 
   return (
-    <AnimatePresence className="bg-transparent">
-      { modalState.showModal && (
-        <motion.div 
-            className="fixed w-full h-full bg-black bg-opacity-50 z-50 backdrop-blur-none"
-            variants={backdrop}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
+    <AnimatePresence>
+      {modalState.showModal && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm"
+          variants={backdrop}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
         >
-          <div className='flex justify-center'>
-          <motion.div 
-            className="max-w-[900px] max-h-[800px] h-auto mx-2 border-b-4 border-l-2 border-r-2 border-t-2 bg-white rounded-lg text-center border-red-900 bg-gradient-to-t from-red-900 via-gray-50 to-gray-50 overflow-hidden"
-            style={{ backgroundImage: `url(${logo})`,
-              backgroundRepeat: 'no-repeat',  // Ensures the background image doesn't repeat
-              backgroundSize: 'cover'        // Ensures the image covers the entire div area without stretching
-              }} // Make sure logo is a valid URL string
-            
-            variants={modal} // Assuming modal is a valid Framer Motion variant
+          <motion.div
+            className="relative w-full max-w-[900px] border-[3px] border-yellow-400 rounded-xl shadow-xl overflow-hidden p-6"
+            style={{
+              backgroundImage: `linear-gradient(to top, #1c1c1c, #4a0000), url(${logo})`,
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'cover',
+              boxShadow: '0 0 20px rgba(255, 215, 0, 0.6)',
+            }}
+            variants={modal}
           >
-                {/* <div className="absolute left-1/2 transform -translate-x-1/2  w-full h-72 ">
-                    <img src={logo}>
-                    </img>
-                </div> */}
-                <div className='flex flex-wrap relative z-50 p-8 backdrop-blur-sm'>
-                <label
-                  htmlFor="Department"
-                  className="text-balance content-center text-2xl text-gray-400 font-mono z-20 w-full"
-                  >
+            {/* Optional icon */}
+            {modalState.icon && <Icons icon={modalState.icon} />}
+
+            {/* Close Button */}
+            <button
+              className="absolute top-4 right-4 text-yellow-400 text-2xl font-bold hover:text-red-500 transition-all z-50"
+              onClick={handleCancel}
+            >
+              ✕
+            </button>
+
+            {/* Modal content */}
+            <div className="z-10 relative backdrop-blur-sm p-4">
+              <h2 className="text-center text-3xl font-extrabold text-yellow-400 drop-shadow-md font-mono">
+                {isWinner ? '🏆 YOU WON! PLAY AGAIN? 🏆' : '🎰 PLAY AGAIN? 🎲'}
+              </h2>
+
+              {modalState.text && (
+                <p className="mt-3 text-center text-sm text-yellow-200/80 font-mono">
                   {modalState.text}
-                </label>
-                <label
-                  htmlFor="Department"
-                  className="text-balance content-center text-2xl text-gray-400 font-mono z-20 w-full"
-                  >
+                </p>
+              )}
+              {modalState.title && (
+                <p className="text-center text-base text-yellow-300 font-mono mt-1">
                   {modalState.title}
-                </label>
-                <LabelInputContainer className="mt-3">
-                    <Label htmlFor="fullname" className="flex justify-start font-mono text-gray-400 absolute right-4 top-2 text-1xl hover:-translate-y-1 hover:text-2xl cursor-pointer"
-                      onClick={handleCancel}>X</Label>
-                    <Label htmlFor="fullname" className="flex justify-center font-mono text-gray-400 w-full" >BET AMOUNT</Label>
-                    <select 
-                      name="options" 
-                      id="options" 
-                      className='font-mono text-gray-400 h-10 text-lg w-full rounded-lg border-2 border-red-900'
-                      value={selectedOption} // Bind the selected option state to the select dropdown
-                      onChange={handleSelectChange} // Handle the change event
-                    >
-                      <option value="R5">R5</option>
-                      <option value="R10">R10</option>
-                      <option value="R15">R15</option>
-                      <option value="R20">R20</option>
-                      <option value="R25">R25</option>
-                      <option value="R30">R30</option>
-                      <option value="R35">R35</option>
-                      <option value="R40">R40</option>
-                    </select>
-                    <div className='flex flex-nowrap w-full'>
-                      <button
-                        className="backdrop-blur-lg mt-3 mr-2 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 border-2 border-red-900  bg-white  relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-red-900 rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-                        type="submit"
-                        onClick={handleCancel}
-                        >
-                          {modalState.id === modalState.winer.playerId ? 
-                            "QUIT"
-                            :
-                            "GIVE UP"
-                          }
-                      </button>
-                      <button
-                        className="mt-3 ml-2 transition ease-in-out delay-75 duration-75 hover:-translate-y-1 hover:scale-105 px-2 bg-gradient-to-br relative group/btn from-black dark:to-red-900 to-red-600 block dark:bg-zinc-800 w-[50%] text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-                        type="submit"
-                        onClick={handleSubmit}
-                        >
-                          {modalState.id === modalState.winer.playerId ? 
-                            "WIN"
-                            :
-                            "WIN"
-                          }
-                      </button>
-                    </div>
+                </p>
+              )}
 
-                </LabelInputContainer>
+              <LabelInputContainer className="mt-6">
+                <Label
+                  htmlFor="options"
+                  className="block text-lg text-yellow-300 font-mono mb-2"
+                >
+                  SELECT YOUR BET
+                </Label>
+                <select
+                  id="options"
+                  name="options"
+                  value={selectedOption}
+                  onChange={handleSelectChange}
+                  className="w-full h-12 bg-black text-yellow-300 border-2 border-yellow-400 rounded-lg font-mono text-lg px-3 shadow-inner"
+                >
+                  {["R5", "R10", "R15", "R20", "R25", "R30", "R35", "R40"].map(
+                    (value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    )
+                  )}
+                </select>
+
+                <div className="mt-6 flex gap-4 w-full">
+                  <button
+                    className="backdrop-blur-lg flex-1 mt-0 border-2 border-red-900 bg-white text-red-900 font-mono font-semibold rounded-md h-10 shadow-[0_2px_6px_rgba(0,0,0,0.4)] transition-transform duration-150 hover:-translate-y-1 hover:scale-105"
+                    type="button"
+                    onClick={handleCancel}
+                  >
+                    {isWinner ? 'QUIT' : 'GIVE UP'}
+                  </button>
+
+                  <button
+                    className="flex-1 mt-0 bg-gradient-to-br from-yellow-400 to-red-600 text-black font-extrabold font-mono rounded-md h-10 shadow-[0_4px_10px_rgba(0,0,0,0.5)] transition-transform duration-150 hover:-translate-y-1 hover:scale-105"
+                    type="button"
+                    onClick={handleSubmit}
+                  >
+                    WIN
+                  </button>
                 </div>
-
+              </LabelInputContainer>
+            </div>
           </motion.div>
-          </div>
-
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
 
 const LabelInputContainer = ({ children, className }) => {
   return (
@@ -347,6 +300,5 @@ const LabelInputContainer = ({ children, className }) => {
     </div>
   );
 };
-
 
 export default PlayAgain;

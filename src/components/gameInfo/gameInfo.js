@@ -8,6 +8,7 @@ export default function GameInfo ({myScore}) {
   const [userInfo, setUserInfo] = useState('');
   var boardId = localStorage.getItem("joinedBoard");
   var betAmount = localStorage.getItem("betAmount");
+  
     useEffect(() => {
         // Reference to the Firebase database path you want to listen to
         const dataRef = ref(database, `boards/live/${betAmount}/${boardId}`);

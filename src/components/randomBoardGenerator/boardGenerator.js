@@ -19,7 +19,7 @@ function ModalProps () {
   return {
     hidden: { y: "-100vh", opacity: 0 },
     visible: { 
-      y: `${device.width < 1540 ? '200px' : '200px' }`, 
+      y: `${'0px'}`, 
       opacity: 1,
       transition: { delay: 0.2 }
     }

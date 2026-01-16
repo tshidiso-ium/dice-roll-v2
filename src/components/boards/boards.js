@@ -79,41 +79,44 @@ export default function Boards ({boardJoined, playAgain}) {
         console.log("Amount: ", amount);
         try{
             if(amount !== 0 ){
-                const result = await randomBoardJoin(amount);
-                if(result?.status === "success"){
-                    console.log("Board ID: ", result.boardId);
-                    if(result?.boardId.message){
-                      handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId.boardId);
-                      updateModelState();
-                    }
-                    else{
-                      handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId);
-                      updateModelState();
-                    }
-
+              const result = await randomBoardJoin(amount);
+              if(result?.status === "success"){
+                console.log("Board ID: ", result.boardId);
+                if(result?.boardId.message){
+                  handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId.boardId);
+                  localStorage.setItem("joinedBoard", result.boardId.boardId);
+                  localStorage.setItem("betAmount", parseInt(amount.replace('R', '')));
+                  updateModelState();
                 }
-                console.log("Available Boards: ", result);
+                else{
+                  handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId);
+                  localStorage.setItem("joinedBoard", result.boardId.boardId);
+                  localStorage.setItem("betAmount", parseInt(amount.replace('R', '')));
+                  updateModelState();
+                }
+              }
+              console.log("Available Boards: ", result);
             }
             else{
-                updateModelState();
+              updateModelState();
             }
 
         }
         catch(err){
-            throw new Error(err);
+          throw new Error(err);
         }
 
         //here we look for an active board that has the same betting amount 
     }
 
     const updateModelState = async () =>{
-        setStateModal({'showModal': !modalState.showModal, "text": '', "title" :'', 'icon': ''})
+      setStateModal({'showModal': !modalState.showModal, "text": '', "title" :'', 'icon': ''})
     }
 
     useEffect(()=> {
      console.log(playAgain);
         if(playAgain){
-            joinRandomBoardValue(playAgain.betAmount);
+          joinRandomBoardValue(playAgain.betAmount);
         }
     }, []);
 
@@ -153,7 +156,7 @@ export default function Boards ({boardJoined, playAgain}) {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    handleJoinBoard( room.bet, roomId);
+                    handleJoinBoard(room.bet, roomId);
                   }}
                   key={roomId}
                   className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
@@ -181,7 +184,7 @@ export default function Boards ({boardJoined, playAgain}) {
                   >
                       PLAY NOW
                   </button>
-                  <div className={    countdowns[roomId]
+                  <div className={   countdowns[roomId]
                       ?
                       `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
                       :
