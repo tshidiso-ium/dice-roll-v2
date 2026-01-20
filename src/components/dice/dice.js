@@ -41,6 +41,10 @@ export default function DiceRoller({updateMyScore}) {
         diceRef2.current.rollDice();
         updateMyScore((dice1 + dice2));
     }
+    else if( userData && userData.status === "Out"){
+        diceRef.current.rollDice();
+        diceRef2.current.rollDice();
+    }
 
   }, [dice1,dice2]);
 

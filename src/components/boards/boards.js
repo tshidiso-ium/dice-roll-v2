@@ -86,13 +86,13 @@ export default function Boards ({boardJoined, playAgain}) {
                   handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId.boardId);
                   localStorage.setItem("joinedBoard", result.boardId.boardId);
                   localStorage.setItem("betAmount", parseInt(amount.replace('R', '')));
-                  updateModelState();
+                  // updateModelState();
                 }
                 else{
                   handleJoinBoard(parseInt(amount.replace('R', '')),result.boardId);
                   localStorage.setItem("joinedBoard", result.boardId.boardId);
                   localStorage.setItem("betAmount", parseInt(amount.replace('R', '')));
-                  updateModelState();
+                  // updateModelState();
                 }
               }
               console.log("Available Boards: ", result);
@@ -116,6 +116,8 @@ export default function Boards ({boardJoined, playAgain}) {
     useEffect(()=> {
      console.log(playAgain);
         if(playAgain){
+          setStateModal({'showModal': false, "text": '', "title" :'', 'icon': ''})
+          console.log("Joining random board again");
           joinRandomBoardValue(playAgain.betAmount);
         }
     }, []);

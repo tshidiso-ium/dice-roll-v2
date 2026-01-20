@@ -29,21 +29,24 @@ export default function HomePage({userLoggedOut, redirect}){
     };
 
   const onGameConclusion = (res) => {
-        console.log("Game res: ",res)
+        console.log("Game res: ",res);
         console.log("Game Conclusion");
         clearGameStorage();
         if(res === 0){
+            console.log("No play again");
             setJoinedBoard('');
-            setPlayAgain(0);
+            setPlayAgain(null);
         }
         else{
+            console.log("Play again");
             setJoinedBoard('');
-            setPlayAgain(res);
+            setPlayAgain(res);       
         }
     }
 
     function clearGameStorage() {
         try {
+            console.log("Clearing game related localStorage items");
             localStorage.removeItem("joinedBoard");
             localStorage.removeItem("betAmount");
         } catch (err) {
