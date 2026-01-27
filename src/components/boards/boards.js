@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { database } from '../../modules/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import BoardGenerator from '../randomBoardGenerator/boardGenerator';
+import { BoardCard } from '../boardCards/BoardCard';
+import { LoadingBoards } from '../boardCards/LoadingBoards';
 
 export default function Boards ({boardJoined, playAgain}) {
 
     const [boards, setBoards] = useState('');
     const [countdowns, setCountdowns] = useState({});
     const [modalState, setStateModal] = useState({'showModal': false, "text": '', "title" :'', 'icon': ''});
+    const BET_GROUPS = [5, 10];
+    
+
 
     useEffect(() => {
         console.log(Date.now())
@@ -41,22 +46,27 @@ export default function Boards ({boardJoined, playAgain}) {
         }
     };
 
+    const getSouthAfricanNow = () =>
+    new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Africa/Johannesburg" })
+    ).getTime();
+
     const calculateTimeLeft = (startTime) => {
-        const difference = new Date(startTime) - new Date();
-        let timeLeft = {};
+      const start = new Date(startTime).getTime();
+      if (!Number.isFinite(start)) return null;
 
-        if (difference > 0) {
-            timeLeft = {
-                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-                seconds: Math.floor((difference % (1000 * 60)) / 1000),
-            };
-        } else {
-            return null; // Countdown is over
-        }
+      const now = getSouthAfricanNow();
+      console.log("now time: ", new Date().toLocaleString("en-US", { timeZone: "Africa/Johannesburg" }));
+      const difference = start - now;
+      console.log("Time difference: ", difference);
+      if (difference <= 7199000) return null; // Countdown is over
 
-        return timeLeft;
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / (1000 * 60)) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
     };
 
     useEffect(() => {
@@ -64,10 +74,11 @@ export default function Boards ({boardJoined, playAgain}) {
             const newCountdowns = {};
             if(!boards) return;
             Object.entries(boards[5]).forEach(([roomId, room]) => {
-                newCountdowns[roomId] = calculateTimeLeft(room.startsAt);
+                console.log("Calculating countdown for room: ", roomId);
+                newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
             });
             Object.entries(boards[10]).forEach(([roomId, room]) => {
-                newCountdowns[roomId] = calculateTimeLeft(room.startsAt);
+                newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
             });
             setCountdowns(newCountdowns);
         }, 1000);
@@ -122,6 +133,13 @@ export default function Boards ({boardJoined, playAgain}) {
         }
     }, []);
 
+    const getValidBoards = (boardsForBet, countdowns) =>
+      Object.entries(boardsForBet || {}).filter(
+        ([roomId, room]) =>
+          room.status !== "Concluded" &&
+          countdowns[roomId] !== null
+    );
+ 
     return ( 
 <>
   <div className="min-w-full sticky top-0 bg-gradient-to-b from-[#1a0000] via-[#330000] to-black border-b border-red-800 shadow-lg z-50 min-h-screen">
@@ -145,252 +163,60 @@ export default function Boards ({boardJoined, playAgain}) {
 
     <BoardGenerator modalState={modalState} joinRandomBoard={joinRandomBoardValue} />
 
-{
-  boards
-  &&
-    <div className="flex flex-wrap justify-center align-middle gap-6 p-4">
-      {
-        boards[5] 
-        &&
-          <>
-            {Object.entries(boards[5]).map(([roomId, room], index) =>
-              room.status !== "Concluded" && countdowns[roomId] !== null ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleJoinBoard(room.bet, roomId);
-                  }}
-                  key={roomId}
-                  className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
-                >
-                  <h2 className="text-center text-xl font-extrabold mb-2 text-yellow-400 tracking-wide drop-shadow-md">
-                    🎰 {roomId}
-                  </h2>
-                  <div className="h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent my-2" />
-                  <p className="text-sm mb-1">💰 Bet Amount: <span className="font-bold">{room.bet}</span></p>
-                  <p className="text-sm mb-1">👥 Players: <span className="font-bold">{Object.keys(room.players).length}</span></p>
-                  <p className="text-sm mb-1">💵 Current Stake: <span className="font-bold">R190</span></p>
-                  <p className="text-sm mb-4">⏱ Starting in: <span className="font-bold">
-                    {countdowns[roomId]
-                      ? `${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                      : "Countdown is over!"}
-                  </span></p>
-                  <button
-                      type="submit"
-                      disabled={!countdowns[roomId]}
-                      className={
-                          countdowns[roomId]
-                          ? `w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform transform hover:-translate-y-1`
-                          : `w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed`
-                      }
+   <div className="flex flex-col gap-10 p-4">
+      {BET_GROUPS.map((bet) => {
+        const boardsForBet = boards?.[bet];
+
+        // Boards not loaded yet → loading
+        if (!boardsForBet) {
+          return (
+            <div key={bet}>
+              <h2 className="text-2xl font-extrabold text-yellow-400 mb-4">
+                💰 R{bet} Boards
+              </h2>
+              <LoadingBoards />
+            </div>
+          );
+        }
+
+        const validBoards = getValidBoards(boardsForBet, countdowns);
+
+        return (
+          <div key={bet}>
+            <h2 className="text-2xl font-extrabold text-yellow-400 mb-4">
+              💰 R{bet} Boards
+            </h2>
+
+            {/* 🔄 Show loader ONLY if no boards meet conditions */}
+            {validBoards.length === 0 ? (
+              <LoadingBoards />
+            ) : (
+            <div className="flex overflow-x-auto pb-4 scrollbar-hide gap-6">
+
+                {validBoards.map(([roomId, room]) => (
+                  <div
+                    className={`
+                      transition-all duration-500 ease-in-out
+                      ${countdowns[roomId] 
+                        ? "opacity-100 scale-100 translate-y-0 board-in"
+                        : "opacity-0 scale-95 translate-y-2 pointer-events-none board-out"}
+                    `}
                   >
-                      PLAY NOW
-                  </button>
-                  <div className={   countdowns[roomId]
-                      ?
-                      `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
-                      :
-                      `absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`
-                      }
-                  >     
-                  </div>
-                </form>
-              ) : null
+                  <BoardCard
+                    key={roomId}
+                    roomId={roomId}
+                    room={room}
+                    countdowns={countdowns}
+                    handleJoinBoard={handleJoinBoard}
+                  />
+                </div>
+              ))}
+            </div>
             )}
-          </>
-        
-      }
-      {
-        boards[10] 
-        &&
-          <>
-            {Object.entries(boards[10]).map(([roomId, room], index) =>
-              room.status !== "Concluded" && countdowns[roomId] !== null ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleJoinBoard(room.bet, roomId);
-                  }}
-                  key={roomId}
-                  className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
-                >
-                  <h2 className="text-center text-xl font-extrabold mb-2 text-yellow-400 tracking-wide drop-shadow-md">
-                    🎰 {roomId}
-                  </h2>
-                  <div className="h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent my-2" />
-                  <p className="text-sm mb-1">💰 Bet Amount: <span className="font-bold">{room.bet}</span></p>
-                  <p className="text-sm mb-1">👥 Players: <span className="font-bold">{Object.keys(room.players).length}</span></p>
-                  <p className="text-sm mb-1">💵 Current Stake: <span className="font-bold">R190</span></p>
-                  <p className="text-sm mb-4">⏱ Starting in: <span className="font-bold">
-                    {countdowns[roomId]
-                      ? `${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                      : "Countdown is over!"}
-                  </span></p>
-
-                  <button
-                      type="submit"
-                      disabled={!countdowns[roomId]}
-                      className={
-                          countdowns[roomId]
-                          ? `w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform transform hover:-translate-y-1`
-                          : `w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed`
-                      }
-                  >
-                      PLAY NOW
-                  </button>
-                  <div className={    countdowns[roomId]
-                      ?
-                      `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
-                      :
-                      `absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`
-                      }
-                  >     
-                  </div>
-                </form>
-              ) : null
-            )}
-          </>
-      }
-
-
-      {/*{Object.entries(boards[15]).map(([roomId, room], index) =>
-        room.status !== "Concluded" ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleJoinBoard(roomId);
-            }}
-            key={roomId}
-            className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
-          >
-            <h2 className="text-center text-xl font-extrabold mb-2 text-yellow-400 tracking-wide drop-shadow-md">
-              🎰 {roomId}
-            </h2>
-            <div className="h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent my-2" />
-            <p className="text-sm mb-1">💰 Bet Amount: <span className="font-bold">{room.bet}</span></p>
-            <p className="text-sm mb-1">👥 Players: <span className="font-bold">{Object.keys(room.players).length}</span></p>
-            <p className="text-sm mb-1">💵 Current Stake: <span className="font-bold">R190</span></p>
-            <p className="text-sm mb-4">⏱ Starting in: <span className="font-bold">
-              {countdowns[roomId]
-                ? `${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                : "Countdown is over!"}
-            </span></p>
-
-            <button
-                type="submit"
-                disabled={!countdowns[roomId]}
-                className={
-                    countdowns[roomId]
-                    ? `w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform transform hover:-translate-y-1`
-                    : `w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed`
-                }
-            >
-                PLAY NOW
-            </button>
-            <div className={    countdowns[roomId]
-                ?
-                `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
-                :
-                `absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`
-                }
-            >     
-            </div>
-          </form>
-        ) : null
-      )}
-            {Object.entries(boards[20]).map(([roomId, room], index) =>
-        room.status !== "Concluded" ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleJoinBoard(roomId);
-            }}
-            key={roomId}
-            className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
-          >
-            <h2 className="text-center text-xl font-extrabold mb-2 text-yellow-400 tracking-wide drop-shadow-md">
-              🎰 {roomId}
-            </h2>
-            <div className="h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent my-2" />
-            <p className="text-sm mb-1">💰 Bet Amount: <span className="font-bold">{room.bet}</span></p>
-            <p className="text-sm mb-1">👥 Players: <span className="font-bold">{Object.keys(room.players).length}</span></p>
-            <p className="text-sm mb-1">💵 Current Stake: <span className="font-bold">R190</span></p>
-            <p className="text-sm mb-4">⏱ Starting in: <span className="font-bold">
-              {countdowns[roomId]
-                ? `${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                : "Countdown is over!"}
-            </span></p>
-
-            <button
-                type="submit"
-                disabled={!countdowns[roomId]}
-                className={
-                    countdowns[roomId]
-                    ? `w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform transform hover:-translate-y-1`
-                    : `w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed`
-                }
-            >
-                PLAY NOW
-            </button>
-            <div className={    countdowns[roomId]
-                ?
-                `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
-                :
-                `absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`
-                }
-            >     
-            </div>
-          </form>
-        ) : null
-      )}
-            {Object.entries(boards[25]).map(([roomId, room], index) =>
-        room.status !== "Concluded" ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleJoinBoard(roomId);
-            }}
-            key={roomId}
-            className="bg-gradient-to-br from-[#330000] to-[#0a0000] text-white p-4 rounded-2xl shadow-xl border border-yellow-500 relative  my-auto"
-          >
-            <h2 className="text-center text-xl font-extrabold mb-2 text-yellow-400 tracking-wide drop-shadow-md">
-              🎰 {roomId}
-            </h2>
-            <div className="h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent my-2" />
-            <p className="text-sm mb-1">💰 Bet Amount: <span className="font-bold">{room.bet}</span></p>
-            <p className="text-sm mb-1">👥 Players: <span className="font-bold">{Object.keys(room.players).length}</span></p>
-            <p className="text-sm mb-1">💵 Current Stake: <span className="font-bold">R190</span></p>
-            <p className="text-sm mb-4">⏱ Starting in: <span className="font-bold">
-              {countdowns[roomId]
-                ? `${countdowns[roomId].minutes}m ${countdowns[roomId].seconds}s`
-                : "Countdown is over!"}
-            </span></p>
-
-            <button
-                type="submit"
-                disabled={!countdowns[roomId]}
-                className={
-                    countdowns[roomId]
-                    ? `w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform transform hover:-translate-y-1`
-                    : `w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed`
-                }
-            >
-                PLAY NOW
-            </button>
-            <div className={    countdowns[roomId]
-                ?
-                `absolute top-0 right-0 w-3 h-3 rounded-full bg-green-500 animate-ping`
-                :
-                `absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`
-                }
-            >     
-            </div>
-          </form>
-        ) : null
-      )} */}
+          </div>
+        );
+      })}
     </div>
-}
-
   </div>
 </>
     )
