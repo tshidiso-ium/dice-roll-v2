@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../modules/firebase';
-import logo from '../images/dice-red.jpg';
+import logo from '../images/dice-red.png';
+import { useNavigate } from "react-router-dom";
+import {
+  TextField,
+  IconButton,
+  InputAdornment
+} from "@mui/material";
+import {
+  Visibility,
+  VisibilityOff
+} from "@mui/icons-material";
 
 const Login = ({userLoggedIn}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [modalState, setStateModal] = useState({'showModal': false, "text": '', "title" :'', 'icon': ''});
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,7 +53,7 @@ const Login = ({userLoggedIn}) => {
       // On successful login, you can redirect or show a success message
     } catch (err) {
       console.log(err);
-      setError(err.message);
+      setError(getAuthErrorMessage(err));
     }
     finally {
       // Ensure the Popup is dismissed after the sign-in process is complete or encounters an error
@@ -51,48 +63,195 @@ const Login = ({userLoggedIn}) => {
     }
   };
 
-  return (
-    <div className={`flex flex-col items-center justify-center min-h-full`}   
-      style={{
-          backgroundImage: `url(${logo})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          width: '100%',
-          height: '80vh'
-      }}
-    >
-      <form onSubmit={handleLogin} className="backdrop-blur-xl p-6 rounded shadow-md ">
+  const getAuthErrorMessage = (error) => {
+    if (!error?.code) {
+        return "Something went wrong. Please try again.";
+    }
 
-        <h2 className="text-2xl mb-6">Login</h2>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-            required
+    switch (error.code) {
+        case "auth/invalid-credential":
+          return "The email or password you entered is incorrect. Please try again.";
+
+        case "auth/user-not-found":
+          return "No account found with this email.";
+
+        case "auth/wrong-password":
+          return "Incorrect password. Please try again.";
+
+        case "auth/email-already-in-use":
+          return "An account with this email already exists. Please log in instead.";
+
+        case "auth/too-many-requests":
+          return "Too many attempts. Please wait a moment and try again.";
+
+        case "auth/network-request-failed":
+          return "Network error. Please check your internet connection.";
+
+        default:
+        return "Unable to complete your request. Please try again.";
+    }
+  };
+
+  return (
+  <div
+    className="flex items-center justify-center min-h-screen px-4"
+    style={{
+      backgroundImage: `url(${logo})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}
+  >
+    <div className="w-full max-w-md backdrop-blur-2xl bg-black/70 border border-yellow-500/30 rounded-2xl shadow-2xl p-8">
+
+      <h2 className="text-center text-3xl font-extrabold text-yellow-400 mb-2">
+         Welcome Back
+      </h2>
+      <p className="text-center text-sm text-gray-300 mb-6">
+        Log in to continue playing
+      </p>
+
+      <form onSubmit={handleLogin} className="space-y-4">
+
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">
+            Email
+          </label>
+          <TextField
+              type="email"
+              placeholder="you@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+              sx={{
+                  "& .MuiInputBase-input": {
+                  color: "#fff",
+                  padding: "14px",
+                  },
+                  "& .MuiInputLabel-root": {
+                  color: "#ccc",
+                  },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#facc15",
+                  },
+                  "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px",
+                  backgroundColor: "rgba(0,0,0,0.6)",
+                  "& fieldset": {
+                      borderColor: "#555",
+                  },
+                  "&:hover fieldset": {
+                      borderColor: "#facc15",
+                  },
+                  "&.Mui-focused fieldset": {
+                      borderColor: "#facc15",
+                      borderWidth: "1px",
+                  },
+                  },
+              }}
           />
         </div>
-        <div className="mb-4">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-          <input
-            type="password"
-            id="password"
+
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">
+            Password
+          </label>
+            <TextField
+            type={showPassword ? "text" : "password"}
+            // label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            fullWidth
             required
-          />
+            variant="outlined"
+            placeholder="••••••••"
+            InputProps={{
+                endAdornment: (
+                <InputAdornment position="end">
+                    <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        sx={{
+                        color: showPassword ? "#facc15" : "#9ca3af", // yellow when active
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                            color: "#facc15",
+                            transform: "scale(1.1)",
+                        },
+                        "&:active": {
+                            transform: "scale(0.95)",
+                        },
+                        }}
+                    >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                </InputAdornment>
+
+
+                ),
+            }}
+                sx={{
+                    "& .MuiInputBase-input": {
+                    color: "#fff",
+                    padding: "14px",
+                    },
+                    "& .MuiInputLabel-root": {
+                    color: "#ccc",
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                    color: "#facc15",
+                    },
+                    "& .MuiOutlinedInput-root": {
+                    borderRadius: "12px",
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    "& fieldset": {
+                        borderColor: "#555",
+                    },
+                    "&:hover fieldset": {
+                        borderColor: "#facc15",
+                    },
+                    "&.Mui-focused fieldset": {
+                        borderColor: "#facc15",
+                        borderWidth: "1px",
+                    },
+                    },
+                }}
+            />
         </div>
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        <button type="submit" className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600">
-          Login
+
+        {error && (
+          <p className="text-red-400 text-sm text-center">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold tracking-wide hover:brightness-125 transition"
+        >
+          LOGIN
         </button>
+
       </form>
+
+      <div className="text-center mt-6 text-sm text-gray-300">
+        Don’t have an account?{" "}
+        <span
+          className="text-yellow-400 font-semibold cursor-pointer hover:underline"
+          onClick={() => navigate("/register")}
+        >
+          Register
+        </span>
+      </div>
+
+      <p className="text-center text-xs text-gray-500 mt-4">
+        🔞 You must be 18+ to play. Gamble responsibly.
+      </p>
+
     </div>
+  </div>
   );
 };
 

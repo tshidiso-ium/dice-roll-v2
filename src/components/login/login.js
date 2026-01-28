@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../modules/firebase';
-import logo from '../../images/dice-red.jpg'
+import logo from '../../images/dice-red.png'
 
 const Login = ({userLoggedIn}) => {
   const [email, setEmail] = useState('');
@@ -52,48 +52,87 @@ const Login = ({userLoggedIn}) => {
     }
   };
 
-  return (
-    <div className={`flex flex-col items-center justify-center min-h-full`}   
+return (
+  <div
+    className="flex items-center justify-center min-h-screen px-4"
     style={{
-        backgroundImage: `url(${logo})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        width: '100%',
-        height: '80vh'
-    }}>
-      <form onSubmit={handleLogin} className="backdrop-blur-xl p-6 rounded shadow-md ">
+      backgroundImage: `url(${logo})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+    }}
+  >
+    <div className="w-full max-w-md backdrop-blur-2xl bg-black/70 border border-yellow-500/30 rounded-2xl shadow-2xl p-8">
 
-        <h2 className="text-2xl mb-6">Login</h2>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+      <h2 className="text-center text-3xl font-extrabold text-yellow-400 mb-2">
+        🎰 Welcome Back
+      </h2>
+      <p className="text-center text-sm text-gray-300 mb-6">
+        Log in to continue playing
+      </p>
+
+      <form onSubmit={handleLogin} className="space-y-4">
+
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">
+            Email
+          </label>
           <input
             type="email"
-            id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
             required
+            className="w-full px-4 py-3 rounded-xl bg-black/60 border border-gray-600 text-white focus:outline-none focus:border-yellow-400"
+            placeholder="you@email.com"
           />
         </div>
-        <div className="mb-4">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+
+        <div>
+          <label className="block text-sm text-gray-300 mb-1">
+            Password
+          </label>
           <input
             type="password"
-            id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
             required
+            className="w-full px-4 py-3 rounded-xl bg-black/60 border border-gray-600 text-white focus:outline-none focus:border-yellow-400"
+            placeholder="••••••••"
           />
         </div>
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        <button type="submit" className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600">
-          Login
+
+        {error && (
+          <p className="text-red-400 text-sm text-center">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold tracking-wide hover:brightness-125 transition"
+        >
+          LOGIN
         </button>
+
       </form>
+
+      <div className="text-center mt-6 text-sm text-gray-300">
+        Don’t have an account?{" "}
+        <span
+          className="text-yellow-400 font-semibold cursor-pointer hover:underline"
+          onClick={() => navigate("/register")}
+        >
+          Register
+        </span>
+      </div>
+
+      <p className="text-center text-xs text-gray-500 mt-4">
+        🔞 You must be 18+ to play. Gamble responsibly.
+      </p>
+
     </div>
-  );
+  </div>
+);
+
 };
 
 export default Login;

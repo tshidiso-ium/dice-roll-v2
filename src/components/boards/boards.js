@@ -56,9 +56,7 @@ export default function Boards ({boardJoined, playAgain}) {
       if (!Number.isFinite(start)) return null;
 
       const now = getSouthAfricanNow();
-      console.log("now time: ", new Date().toLocaleString("en-US", { timeZone: "Africa/Johannesburg" }));
       const difference = start - now;
-      console.log("Time difference: ", difference);
       if (difference <= 7199000) return null; // Countdown is over
 
       return {
@@ -77,9 +75,9 @@ export default function Boards ({boardJoined, playAgain}) {
                 console.log("Calculating countdown for room: ", roomId);
                 newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
             });
-            Object.entries(boards[10]).forEach(([roomId, room]) => {
-                newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
-            });
+            // Object.entries(boards[10]).forEach(([roomId, room]) => {
+            //     newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
+            // });
             setCountdowns(newCountdowns);
         }, 1000);
 
@@ -143,18 +141,18 @@ export default function Boards ({boardJoined, playAgain}) {
     return ( 
 <>
   <div className="min-w-full sticky top-0 bg-gradient-to-b from-[#1a0000] via-[#330000] to-black border-b border-red-800 shadow-lg z-50 min-h-screen">
-    <div className="grid grid-cols-2 text-center text-white text-lg font-bold tracking-wide">
+    <div className="grid grid-cols-1 text-center text-white text-lg font-bold tracking-wide">
       <button
         onClick={updateModelState}
         className="py-2 border-r border-red-700 bg-gradient-to-r from-[#660000] to-[#990000] hover:brightness-125 transition-all"
       >
         🎲 RANDOM BOARD
       </button>
-      <button className="py-2 bg-gradient-to-r from-[#990000] to-[#660000] hover:brightness-125 transition-all">
+      {/* <button className="py-2 bg-gradient-to-r from-[#990000] to-[#660000] hover:brightness-125 transition-all">
         ➕ CREATE BOARD
-      </button>
+      </button> */}
     </div>
-    <div className="h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent my-2" />
+    <div className="h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent my-0" />
 
     <div className="text-center py-2 text-yellow-400 font-semibold text-md uppercase tracking-wide bg-black">
       🃏 Available Boards
@@ -163,59 +161,59 @@ export default function Boards ({boardJoined, playAgain}) {
 
     <BoardGenerator modalState={modalState} joinRandomBoard={joinRandomBoardValue} />
 
-   <div className="flex flex-col gap-10 p-4">
-      {BET_GROUPS.map((bet) => {
-        const boardsForBet = boards?.[bet];
+    <div className="flex flex-col gap-10 p-4">
+        {BET_GROUPS.map((bet) => {
+          const boardsForBet = boards?.[bet];
 
-        // Boards not loaded yet → loading
-        if (!boardsForBet) {
+          // Boards not loaded yet → loading
+          if (!boardsForBet) {
+            return (
+              <div key={bet}>
+                <h2 className="text-2xl font-extrabold text-yellow-400 mb-4">
+                  💰 R{bet} Boards
+                </h2>
+                <LoadingBoards />
+              </div>
+            );
+          }
+
+          const validBoards = getValidBoards(boardsForBet, countdowns);
+
           return (
             <div key={bet}>
               <h2 className="text-2xl font-extrabold text-yellow-400 mb-4">
                 💰 R{bet} Boards
               </h2>
-              <LoadingBoards />
+
+              {/* 🔄 Show loader ONLY if no boards meet conditions */}
+              {validBoards.length === 0 ? (
+                <LoadingBoards />
+              ) : (
+              <div className="flex overflow-x-auto pb-4 scrollbar-hide gap-6">
+
+                  {validBoards.map(([roomId, room]) => (
+                    <div
+                      className={`
+                        transition-all duration-500 ease-in-out
+                        ${countdowns[roomId] 
+                          ? "opacity-100 scale-100 translate-y-0 board-in"
+                          : "opacity-0 scale-95 translate-y-2 pointer-events-none board-out"}
+                      `}
+                    >
+                    <BoardCard
+                      key={roomId}
+                      roomId={roomId}
+                      room={room}
+                      countdowns={countdowns}
+                      handleJoinBoard={handleJoinBoard}
+                    />
+                  </div>
+                ))}
+              </div>
+              )}
             </div>
           );
-        }
-
-        const validBoards = getValidBoards(boardsForBet, countdowns);
-
-        return (
-          <div key={bet}>
-            <h2 className="text-2xl font-extrabold text-yellow-400 mb-4">
-              💰 R{bet} Boards
-            </h2>
-
-            {/* 🔄 Show loader ONLY if no boards meet conditions */}
-            {validBoards.length === 0 ? (
-              <LoadingBoards />
-            ) : (
-            <div className="flex overflow-x-auto pb-4 scrollbar-hide gap-6">
-
-                {validBoards.map(([roomId, room]) => (
-                  <div
-                    className={`
-                      transition-all duration-500 ease-in-out
-                      ${countdowns[roomId] 
-                        ? "opacity-100 scale-100 translate-y-0 board-in"
-                        : "opacity-0 scale-95 translate-y-2 pointer-events-none board-out"}
-                    `}
-                  >
-                  <BoardCard
-                    key={roomId}
-                    roomId={roomId}
-                    room={room}
-                    countdowns={countdowns}
-                    handleJoinBoard={handleJoinBoard}
-                  />
-                </div>
-              ))}
-            </div>
-            )}
-          </div>
-        );
-      })}
+        })}
     </div>
   </div>
 </>

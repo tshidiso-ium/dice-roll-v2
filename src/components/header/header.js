@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logo from '../../images/dice-red.jpg';
+import logo from '../../images/dice-red.png';
 
 export default function NavMobile({ userLogedOut, redirect }) {
   const [isOpen, setIsOpen] = useState(false);

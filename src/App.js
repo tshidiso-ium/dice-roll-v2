@@ -1,6 +1,6 @@
 import './App.css';
 import Login from './pages/login';
-import Register from './components/register/register';
+import Register from './pages/register';
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route   } from 'react-router-dom';
 import AccountPage from './pages/account';
@@ -69,6 +69,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route index element={<Login userLoggedIn = {onUserLogin}/>} />
+          <Route path="/register" exact element={<Register userRegistered = {onUserLogin}/>}/>
           <Route path="/" exact element={<Login userLoggedIn = {onUserLogin}/>}/>
           <Route path="/home" element={<HomePage userLoggedOut = {onUserLogout}  redirect={onRedirect}/>} />
           <Route path="/account"  element={<AccountPage userLoggedOut = {onUserLogout} redirect={onRedirect}/>} />
