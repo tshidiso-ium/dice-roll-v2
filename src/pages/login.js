@@ -12,6 +12,7 @@ import {
   Visibility,
   VisibilityOff
 } from "@mui/icons-material";
+import { sendEmailVerification } from "firebase/auth";
 
 const Login = ({userLoggedIn}) => {
   const [email, setEmail] = useState('');
@@ -27,20 +28,28 @@ const Login = ({userLoggedIn}) => {
     setError(null);
     try {
       const result = await signInWithEmailAndPassword(auth,email, password);
-      console.log(result);
+
+      console.log(result.user);
+        const verified = await accountVerified(result);
+        console.log("Account verified: ", verified);
+        if(verified === false){
+          return;
+        }
       const idToken = await result._tokenResponse;
       const uid = await verifyUser(idToken.idToken);
       if (result && uid.uid == result.user.uid) {
         // Display the success popup
-        setStateModal({
-          showModal: true,
-          text: 'Login Successful',
-          title: "Welcome",
-          icon: "approved",
-        });
-        localStorage.setItem("userID", result.user.uid);
-        localStorage.setItem("idToken", idToken.idToken);
-        userLoggedIn(result);
+        
+          setStateModal({
+            showModal: true,
+            text: 'Login Successful',
+            title: "Welcome",
+            icon: "approved",
+          });
+          localStorage.setItem("userID", result.user.uid);
+          localStorage.setItem("idToken", idToken.idToken);
+          userLoggedIn(result);
+        
       }
       else{
         setStateModal({
@@ -91,6 +100,57 @@ const Login = ({userLoggedIn}) => {
         return "Unable to complete your request. Please try again.";
     }
   };
+
+  // const accountVerified = async (userInfo) => { 
+  //   if (userInfo.user) {
+  //     const user = userInfo.user;
+  //     const idToken = userInfo._tokenResponse;
+
+  //     console.log("User info:", user);
+
+  //     // 🔐 Check email verification
+  //     if (!user.emailVerified) {
+  //       console.log(await sendEmailVerification(user))
+  //       // const emailsent = await sendEmailVerification(user);
+  //       // console.log("Verification email sent:", emailsent);
+  //       setError(`Your email address is not verified.\n\n We've sent you a verification email. Please verify your email before logging in.`);
+
+  //       return false; // ⛔ stop login flow
+  //     }
+  //     else{
+  //       return true; // ✅ proceed with login
+  //     }
+  //   }
+  // }
+
+  const accountVerified = async (result) => {
+  try {
+    const user = result.user;
+    console.log("Verifying user:", user.providerId);
+    if (!user) {
+      console.error("No authenticated user found");
+      return false;
+    }
+
+    // 🔄 Always reload to get latest verification state
+    // await user.reload();
+
+    if (!user.emailVerified) {
+      console.log("User email not verified. Sending verification email...");
+
+      await sendEmailVerification(user);
+
+      setError(`Your email address is not verified.\n\n We've sent you a verification email. Please verify your email before logging in.`);
+
+      return false; // ⛔ block login
+    }
+
+    return true; // ✅ verified
+  } catch (err) {
+    console.error("Email verification error:", err);
+    return false;
+  }
+};
 
   return (
   <div

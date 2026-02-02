@@ -12,6 +12,7 @@ import {
   Visibility,
   VisibilityOff
 } from "@mui/icons-material";
+import RegistrationSuccessful from "../components/PopupVariant/registrationSuccessful";
 
 const Register = ({ userRegistered }) => {
   const navigate = useNavigate(); 
@@ -22,6 +23,8 @@ const Register = ({ userRegistered }) => {
   const [isAdult, setIsAdult] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
   
 
   const [modalState, setStateModal] = useState({
@@ -44,9 +47,10 @@ const Register = ({ userRegistered }) => {
       setError("Passwords do not match");
       return;
     }
-
+    setIsLoading(true); // 🔄 START LOADING
+    var result = null;
     try {
-      const result = await createUserWithEmailAndPassword(
+       result = await createUserWithEmailAndPassword(
         auth,
         email,
         password
@@ -61,19 +65,9 @@ const Register = ({ userRegistered }) => {
 
       localStorage.setItem("userID", result.user.uid);
 
-      if (userRegistered) {
-        userRegistered(result);
-      }
     } catch (err) {
       console.log(err);
-    //   setError(err.message);
       setError(getAuthErrorMessage(err));
-      setStateModal({
-        showModal: true,
-        title: "Registration Failed",
-        text: err.message,
-        icon: "unapproved",
-      });
     } finally {
       setTimeout(() => {
         setStateModal({
@@ -82,7 +76,12 @@ const Register = ({ userRegistered }) => {
           title: "",
           icon: "",
         });
+        setIsLoading(false); // ✅ STOP LOADING
+        if (result) {
+            userRegistered(result);
+        }
       }, 3000);
+
     }
   };
 
@@ -128,6 +127,7 @@ const Register = ({ userRegistered }) => {
         backgroundPosition: "center",
       }}
     >
+      <RegistrationSuccessful modalState={modalState} />
       <div className="w-full max-w-md backdrop-blur-2xl bg-black/70 border border-yellow-500/30 rounded-2xl shadow-2xl p-8">
 
         <h2 className="text-center text-3xl font-extrabold text-yellow-400 mb-2">
@@ -151,6 +151,7 @@ const Register = ({ userRegistered }) => {
                 fullWidth
                 required
                 variant="outlined"
+                disabled={isLoading}
                 sx={{
                     "& .MuiInputBase-input": {
                     color: "#fff",
@@ -194,6 +195,7 @@ const Register = ({ userRegistered }) => {
             required
             variant="outlined"
             placeholder="••••••••"
+            disabled={isLoading}
             InputProps={{
                 endAdornment: (
                 <InputAdornment position="end">
@@ -262,6 +264,7 @@ const Register = ({ userRegistered }) => {
                 required
                 variant="outlined"
                 placeholder="••••••••"
+                disabled={isLoading}
                 InputProps={{
                     endAdornment: (
                     <InputAdornment position="end">
@@ -320,6 +323,7 @@ const Register = ({ userRegistered }) => {
             <input
                 type="checkbox"
                 id="isAdult"
+                disabled={isLoading}
                 checked={isAdult}
                 onChange={(e) => setIsAdult(e.target.checked)}
                 className="mt-1 accent-yellow-400"
@@ -335,12 +339,26 @@ const Register = ({ userRegistered }) => {
             </p>
           )}
 
-        <button
-            type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold tracking-wide hover:brightness-125 transition"
-            >
-                REGISTER
-        </button>
+            <button
+                type="submit"
+                disabled={isLoading}
+                className={`
+                    w-full py-3 rounded-xl font-extrabold tracking-wide transition
+                    ${isLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-yellow-400 to-red-600 hover:brightness-125"}
+                    text-black flex items-center justify-center gap-2
+                `}
+                >
+                {isLoading ? (
+                    <>
+                    <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    REGISTERING…
+                    </>
+                ) : (
+                    "REGISTER"
+                )}
+            </button>
         </form>
 
         <div className="text-center mt-6 text-sm text-gray-300">

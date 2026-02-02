@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route   } from 'react-router-dom';
 import AccountPage from './pages/account';
 import HomePage from './pages/home';
 
+
 function App() {
 
   const [userLoggedIn, setUserLoggedIn] = useState(false);
@@ -41,13 +42,15 @@ function App() {
     return results;
   };
 
- const onUserLogin = (userInfo) => {
+ const onUserLogin = async (userInfo) => {
   if(userInfo.user){
+    console.log("User info: ", userInfo);
     const user = userInfo.user
     const idToken =  userInfo._tokenResponse;
     localStorage.setItem("userId", user.uid );
     localStorage.setItem("idToken", idToken.idToken );
-    setUserLoggedIn(true);
+    //setUserLoggedIn(true);
+    window.location.href = '/';
   }
  }
 
