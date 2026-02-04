@@ -72,7 +72,6 @@ export default function Boards ({boardJoined, playAgain}) {
             const newCountdowns = {};
             if(!boards) return;
             Object.entries(boards[5]).forEach(([roomId, room]) => {
-                console.log("Calculating countdown for room: ", roomId);
                 newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
             });
             // Object.entries(boards[10]).forEach(([roomId, room]) => {

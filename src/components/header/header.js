@@ -1,6 +1,7 @@
 import { useState } from "react";
 import logo from '../../images/dice-red.png';
 
+
 export default function NavMobile({ userLogedOut, redirect }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -8,6 +9,7 @@ export default function NavMobile({ userLogedOut, redirect }) {
     { name: "Logout", href: "/", key: "Logout" },
     { name: "Play", href: "/home", key: "Play" },
     { name: "Account", href: "/account", key: "Account" },
+  
     // { name: "Contact", href: "/contact", key: "Contact" }
   ];
 

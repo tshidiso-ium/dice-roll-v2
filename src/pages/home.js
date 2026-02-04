@@ -18,6 +18,7 @@ export default function HomePage({userLoggedOut, redirect}){
         console.log("User log out")
         localStorage.removeItem("userId");
         localStorage.removeItem("idToken");
+        localStorage.removeItem("userEmail");
         userLoggedOut();
     };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../modules/firebase';
 import logo from '../images/dice-red.png';
@@ -22,9 +22,15 @@ const Login = ({userLoggedIn}) => {
   const [modalState, setStateModal] = useState({'showModal': false, "text": '', "title" :'', 'icon': ''});
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (localStorage.getItem("userEmail")) {
+      setEmail(localStorage.getItem("userEmail"));
+    }
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("loging in");
+    console.log("loging in")
     setError(null);
     try {
       const result = await signInWithEmailAndPassword(auth,email, password);
@@ -39,17 +45,15 @@ const Login = ({userLoggedIn}) => {
       const uid = await verifyUser(idToken.idToken);
       if (result && uid.uid == result.user.uid) {
         // Display the success popup
-        
-          setStateModal({
-            showModal: true,
-            text: 'Login Successful',
-            title: "Welcome",
-            icon: "approved",
-          });
-          localStorage.setItem("userID", result.user.uid);
-          localStorage.setItem("idToken", idToken.idToken);
-          userLoggedIn(result);
-        
+        setStateModal({
+          showModal: true,
+          text: 'Login Successful',
+          title: "Welcome",
+          icon: "approved",
+        });
+        localStorage.setItem("userID", result.user.uid);
+        localStorage.setItem("idToken", idToken.idToken);
+        userLoggedIn(result);
       }
       else{
         setStateModal({
@@ -101,157 +105,68 @@ const Login = ({userLoggedIn}) => {
     }
   };
 
-  // const accountVerified = async (userInfo) => { 
-  //   if (userInfo.user) {
-  //     const user = userInfo.user;
-  //     const idToken = userInfo._tokenResponse;
-
-  //     console.log("User info:", user);
-
-  //     // 🔐 Check email verification
-  //     if (!user.emailVerified) {
-  //       console.log(await sendEmailVerification(user))
-  //       // const emailsent = await sendEmailVerification(user);
-  //       // console.log("Verification email sent:", emailsent);
-  //       setError(`Your email address is not verified.\n\n We've sent you a verification email. Please verify your email before logging in.`);
-
-  //       return false; // ⛔ stop login flow
-  //     }
-  //     else{
-  //       return true; // ✅ proceed with login
-  //     }
-  //   }
-  // }
 
   const accountVerified = async (result) => {
-  try {
-    const user = result.user;
-    console.log("Verifying user:", user.providerId);
-    if (!user) {
-      console.error("No authenticated user found");
+    try {
+      const user = result.user;
+      console.log("Verifying user:", user.providerId);
+      if (!user) {
+        console.error("No authenticated user found");
+        return false;
+      }
+
+      // 🔄 Always reload to get latest verification state
+      await user.reload();
+
+      if (!user.emailVerified) {
+        console.log("User email not verified. Sending verification email...");
+
+        await sendEmailVerification(user);
+
+        setError(`Your email address is not verified.\n\n We've sent you a verification email. Please verify your email before logging in.`);
+
+        return false; // ⛔ block login
+      }
+
+      return true; // ✅ verified
+    } catch (err) {
+      console.error("Email verification error:", err);
       return false;
     }
-
-    // 🔄 Always reload to get latest verification state
-    // await user.reload();
-
-    if (!user.emailVerified) {
-      console.log("User email not verified. Sending verification email...");
-
-      await sendEmailVerification(user);
-
-      setError(`Your email address is not verified.\n\n We've sent you a verification email. Please verify your email before logging in.`);
-
-      return false; // ⛔ block login
-    }
-
-    return true; // ✅ verified
-  } catch (err) {
-    console.error("Email verification error:", err);
-    return false;
-  }
-};
+  };
 
   return (
-  <div
-    className="flex items-center justify-center min-h-screen px-4"
-    style={{
-      backgroundImage: `url(${logo})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }}
-  >
-    <div className="w-full max-w-md backdrop-blur-2xl bg-black/70 border border-yellow-500/30 rounded-2xl shadow-2xl p-8">
+    <div
+      className="flex items-center justify-center min-h-screen px-4"
+      style={{
+        backgroundImage: `url(${logo})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="w-full max-w-md backdrop-blur-2xl bg-black/70 border border-yellow-500/30 rounded-2xl shadow-2xl p-8">
 
-      <h2 className="text-center text-3xl font-extrabold text-yellow-400 mb-2">
-         Welcome Back
-      </h2>
-      <p className="text-center text-sm text-gray-300 mb-6">
-        Log in to continue playing
-      </p>
+        <h2 className="text-center text-3xl font-extrabold text-yellow-400 mb-2">
+          Welcome Back
+        </h2>
+        <p className="text-center text-sm text-gray-300 mb-6">
+          Log in to continue playing
+        </p>
 
-      <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
 
-        <div>
-          <label className="block text-sm text-gray-300 mb-1">
-            Email
-          </label>
-          <TextField
-              type="email"
-              placeholder="you@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              fullWidth
-              required
-              variant="outlined"
-              sx={{
-                  "& .MuiInputBase-input": {
-                  color: "#fff",
-                  padding: "14px",
-                  },
-                  "& .MuiInputLabel-root": {
-                  color: "#ccc",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                  color: "#facc15",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  backgroundColor: "rgba(0,0,0,0.6)",
-                  "& fieldset": {
-                      borderColor: "#555",
-                  },
-                  "&:hover fieldset": {
-                      borderColor: "#facc15",
-                  },
-                  "&.Mui-focused fieldset": {
-                      borderColor: "#facc15",
-                      borderWidth: "1px",
-                  },
-                  },
-              }}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-300 mb-1">
-            Password
-          </label>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">
+              Email
+            </label>
             <TextField
-            type={showPassword ? "text" : "password"}
-            // label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
-            variant="outlined"
-            placeholder="••••••••"
-            InputProps={{
-                endAdornment: (
-                <InputAdornment position="end">
-                    <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                        sx={{
-                        color: showPassword ? "#facc15" : "#9ca3af", // yellow when active
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                            color: "#facc15",
-                            transform: "scale(1.1)",
-                        },
-                        "&:active": {
-                            transform: "scale(0.95)",
-                        },
-                        }}
-                    >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                </InputAdornment>
-
-
-                ),
-            }}
+                type="email"
+                placeholder="you@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                fullWidth
+                required
+                variant="outlined"
                 sx={{
                     "& .MuiInputBase-input": {
                     color: "#fff",
@@ -279,39 +194,107 @@ const Login = ({userLoggedIn}) => {
                     },
                 }}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">
+              Password
+            </label>
+              <TextField
+              type={showPassword ? "text" : "password"}
+              // label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+              placeholder="••••••••"
+              InputProps={{
+                  endAdornment: (
+                  <InputAdornment position="end">
+                      <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                          sx={{
+                          color: showPassword ? "#facc15" : "#9ca3af", // yellow when active
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                              color: "#facc15",
+                              transform: "scale(1.1)",
+                          },
+                          "&:active": {
+                              transform: "scale(0.95)",
+                          },
+                          }}
+                      >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                  </InputAdornment>
+
+
+                  ),
+              }}
+                  sx={{
+                      "& .MuiInputBase-input": {
+                      color: "#fff",
+                      padding: "14px",
+                      },
+                      "& .MuiInputLabel-root": {
+                      color: "#ccc",
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                      color: "#facc15",
+                      },
+                      "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      "& fieldset": {
+                          borderColor: "#555",
+                      },
+                      "&:hover fieldset": {
+                          borderColor: "#facc15",
+                      },
+                      "&.Mui-focused fieldset": {
+                          borderColor: "#facc15",
+                          borderWidth: "1px",
+                      },
+                      },
+                  }}
+              />
+          </div>
+
+          {error && (
+            <p className="text-red-400 text-sm text-center">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold tracking-wide hover:brightness-125 transition"
+          >
+            LOGIN
+          </button>
+
+        </form>
+
+        <div className="text-center mt-6 text-sm text-gray-300">
+          Don’t have an account?{" "}
+          <span
+            className="text-yellow-400 font-semibold cursor-pointer hover:underline"
+            onClick={() => navigate("/register")}
+          >
+            Register
+          </span>
         </div>
 
-        {error && (
-          <p className="text-red-400 text-sm text-center">
-            {error}
-          </p>
-        )}
+        <p className="text-center text-xs text-gray-500 mt-4">
+          🔞 You must be 18+ to play. Gamble responsibly.
+        </p>
 
-        <button
-          type="submit"
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold tracking-wide hover:brightness-125 transition"
-        >
-          LOGIN
-        </button>
-
-      </form>
-
-      <div className="text-center mt-6 text-sm text-gray-300">
-        Don’t have an account?{" "}
-        <span
-          className="text-yellow-400 font-semibold cursor-pointer hover:underline"
-          onClick={() => navigate("/register")}
-        >
-          Register
-        </span>
       </div>
-
-      <p className="text-center text-xs text-gray-500 mt-4">
-        🔞 You must be 18+ to play. Gamble responsibly.
-      </p>
-
     </div>
-  </div>
   );
 };
 

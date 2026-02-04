@@ -16,6 +16,7 @@ import RegistrationSuccessful from "../components/PopupVariant/registrationSucce
 
 const Register = ({ userRegistered }) => {
   const navigate = useNavigate(); 
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -78,7 +79,8 @@ const Register = ({ userRegistered }) => {
         });
         setIsLoading(false); // ✅ STOP LOADING
         if (result) {
-            userRegistered(result);
+            createUserProfile(result.user, fullName);
+            // userRegistered(result);
         }
       }, 3000);
 
@@ -138,6 +140,48 @@ const Register = ({ userRegistered }) => {
         </p>
 
         <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+                <label className="block text-sm text-gray-300 mb-1">
+                    Full Name
+                </label>
+                <TextField
+                    type="text"
+                    placeholder="Your Name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    fullWidth
+                    required
+                    variant="outlined"
+                    disabled={isLoading}
+                    sx={{
+                        "& .MuiInputBase-input": {
+                        color: "#fff",
+                        padding: "14px",
+                        },
+                        "& .MuiInputLabel-root": {
+                        color: "#ccc",
+                        },
+                        "& .MuiInputLabel-root.Mui-focused": {
+                        color: "#facc15",
+                        },
+                        "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                        backgroundColor: "rgba(0,0,0,0.6)",
+                        "& fieldset": {
+                            borderColor: "#555",
+                        },
+                        "&:hover fieldset": {
+                            borderColor: "#facc15",
+                        },
+                        "&.Mui-focused fieldset": {
+                            borderColor: "#facc15",
+                            borderWidth: "1px",
+                        },
+                        },
+                    }}
+                />
+
+            </div>
 
           <div>
             <label className="block text-sm text-gray-300 mb-1">
@@ -381,3 +425,35 @@ const Register = ({ userRegistered }) => {
 };
 
 export default Register;
+
+
+const createUserProfile = async (user, fullName) => {
+    try{
+        console.log("Creating user profile for: ", user.uid);
+        const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/createUserProfile');
+        url.searchParams.append('userId', user.uid);
+        const res = await fetch(url,{
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${user.accessToken}` 
+            },
+            body: JSON.stringify({
+                email: user.email,
+                fullName: fullName
+            })
+        });
+        if(res.status === 200){
+            const data = await res.json();
+            console.log("User profile created:", data);
+        }
+        else{
+            throw new Error("Failed to create user profile");
+        }
+    }
+    catch(er){
+        console.error("Error creating user profile: ", er);
+        throw new Error("Failed to create user profile: " + er.message);
+    }
+}

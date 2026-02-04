@@ -49,10 +49,20 @@ function App() {
     const idToken =  userInfo._tokenResponse;
     localStorage.setItem("userId", user.uid );
     localStorage.setItem("idToken", idToken.idToken );
-    //setUserLoggedIn(true);
+    setUserLoggedIn(true);
+    // window.location.href = '/';
+  }
+ }
+
+  const onUserRegister = async (userInfo) => {
+  if(userInfo.user){
+    const user = userInfo.user
+    localStorage.setItem("userEmail", user.email );
+
     window.location.href = '/';
   }
  }
+
 
   const onUserLogout = () => {
     const { userId, idToken } = getItems("userId", "idToken");
@@ -72,7 +82,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route index element={<Login userLoggedIn = {onUserLogin}/>} />
-          <Route path="/register" exact element={<Register userRegistered = {onUserLogin}/>}/>
+          <Route path="/register" exact element={<Register userRegistered = {onUserRegister}/>}/>
           <Route path="/" exact element={<Login userLoggedIn = {onUserLogin}/>}/>
           <Route path="/home" element={<HomePage userLoggedOut = {onUserLogout}  redirect={onRedirect}/>} />
           <Route path="/account"  element={<AccountPage userLoggedOut = {onUserLogout} redirect={onRedirect}/>} />
