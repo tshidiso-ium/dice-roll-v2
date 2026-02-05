@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getDatabase, ref as dbRef, onValue, set } from 'firebase/database';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-
+import { ClearBrowserCache } from '../utils/clearCashe';
+import { ClearMediaCache } from '../utils/clearMediaCache';
 const STORAGE_KEY = 'dice_profile_v1';
 
 function defaultProfile() {
@@ -176,13 +176,16 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
             const data = await res.json();
 
             // ✅ Update UI + persist profile
-            console.log("avat url: ", data);
+            console.log("avat url: ", data.result.avatarUrl);
             setAvatarDraft(data.result.avatarUrl);
 
-            const updated = { ...profile, avatarUrl: data.avatarUrl };
+            const updated = { ...profile, avatarUrl: data.result.avatarUrl, url:data.result.avatarUrl,  fullName: nameDraft};
+            console.log("profile: ", updated);
             setProfile(updated);
+            await updateUserProfile(updated);
             await writeProfile(updated);
-
+            // Only clear cached media so new avatar fetches fresh copy; automatically refresh media elements
+            try { await ClearMediaCache({ refresh: true }); } catch (e) { console.warn('ClearMediaCache failed', e); }
         } catch (err) {
             console.error("Avatar upload failed", err);
         } finally {
@@ -248,6 +251,8 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         URL.revokeObjectURL(url);
     };
 
+    
+
     return (
         <div style={{ border: '1px solid #ddd', padding: 12, borderRadius: 8, width: 320 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -277,8 +282,8 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
 
                                     // Optional: client-side validation
                                     if (file.size > 2 * 1024 * 1024) {
-                                    alert("Image must be smaller than 2MB");
-                                    return;
+                                        alert("Image must be smaller than 2MB");
+                                        return;
                                     }
 
                                     handleAvatarFile(file);
@@ -350,6 +355,14 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                 {/* <button onClick={resetStats}>Reset Stats</button> */}
                 <button onClick={exportProfile}>Export</button>
+                <button onClick={async () => {
+                    try {
+                        const res = await ClearMediaCache();
+                    } catch (e) {
+                        console.error('Failed to clear media cache', e);
+                        alert('Failed to clear media cache. See console for details.');
+                    }
+                }}>Clear Media Cache</button>
             </div>
         </div>
     );
@@ -391,17 +404,18 @@ const getUserProfile = async () => {
   }
 }
 
-const updateUserProfile = async () => {
+const updateUserProfile = async (update) => {
   try{
-    const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/getUserData');
+    const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/updateUserProfile');
     url.searchParams.append('userId',  localStorage.getItem("userID"));
     const res = await fetch(url,{
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${localStorage.getItem("idToken")}` 
-      }
+      },
+      body:  JSON.stringify({update})
     });
 
     const data = await res.json();
