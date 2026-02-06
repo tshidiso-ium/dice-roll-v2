@@ -254,132 +254,187 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     
 
     return (
-        <div style={{ border: '1px solid #ddd', padding: 12, borderRadius: 8, width: 320 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                    width: 56, height: 56, borderRadius: 28, background: '#4b8cff',
-                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: '700', fontSize: 18, overflow: 'hidden'
-                }}>
-                    {profile.avatarUrl ? (
-                        // eslint-disable-next-line jsx-a11y/img-redundant-alt
-                        <img src={profile.avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : initials}
-                </div>
+    <div className="max-w-md mx-auto bg-gradient-to-br from-[#1a0000] to-[#0a0000] border border-yellow-500/30 rounded-2xl shadow-2xl p-6 text-white">
 
-                <div style={{ flex: 1 }}>
-                    {editing ? (
-                        <div style={{ display: 'grid', gap: 8 }}>
-                            <input placeholder="Name" value={nameDraft} onChange={e => setNameDraft(e.target.value)} />
-                            <div>
-                                <input
-                                type="file"
-                                accept="image/png, image/jpeg, image/webp"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (!file) return;
-                                    else {console.log("file: ", file)}
+    {/* HEADER */}
+    <div className="flex items-center gap-4">
+        {/* Avatar */}
+        <div className="relative">
+        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-yellow-400 shadow-lg bg-black flex items-center justify-center text-xl font-extrabold text-yellow-400">
+            {profile.avatarUrl ? (
+            <img
+                src={profile.avatarUrl}
+                alt="avatar"
+                className="w-full h-full object-cover"
+            />
+            ) : (
+            initials
+            )}
+        </div>
 
-                                    // Optional: client-side validation
-                                    if (file.size > 2 * 1024 * 1024) {
-                                        alert("Image must be smaller than 2MB");
-                                        return;
-                                    }
+        {editing && (
+            <label className="absolute -bottom-1 -right-1 bg-yellow-400 text-black text-xs px-2 py-0.5 rounded-full cursor-pointer hover:brightness-110">
+            Edit
+            <input
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                hidden
+                onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
 
-                                    handleAvatarFile(file);
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("Image must be smaller than 2MB");
+                    return;
+                }
 
-                                    // Reset input so same file can be re-selected later
-                                    e.target.value = "";
-                                }}
-                                />
-                                <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
-                                    {uploadingAvatar ? 'Uploading avatar...' : avatarDraft ? 'Preview available' : 'No avatar chosen'}
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 8 }}>
-                                <button onClick={saveProfile}>Save</button>
-                                <button onClick={() => {
-                                    setEditing(false);
-                                    setNameDraft(profile.fullName);
-                                    setAvatarDraft(profile.avatarUrl);
-                                }}>Cancel</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <div>
-                                <div style={{ fontSize: 16, fontWeight: 700 }}>{profile.fullName}</div>
-                                <div style={{ fontSize: 12, color: '#666' }}>{profile.email || 'No email'}</div>
-                                <div style={{ fontSize: 12, color: '#666' }}>Wallet: {formatWallet(profile.wallet)}</div>
-                                <div style={{ fontSize: 12, color: '#666' }}>Joined {new Date(profile.createdAt).toLocaleDateString()}</div>
-                            </div>
-                            <button onClick={() => {
-                                setEditing(true);
-                                setNameDraft(profile.fullName);
-                                setAvatarDraft(profile.avatarUrl);
-                            }}>Edit</button>
-                        </div>
-                    )}
-                </div>
+                handleAvatarFile(file);
+                e.target.value = "";
+                }}
+            />
+            </label>
+        )}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1">
+        {editing ? (
+            <input
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            className="w-full bg-black/60 border border-yellow-500/30 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-yellow-400"
+            placeholder="Full name"
+            />
+        ) : (
+            <>
+            <div className="text-lg font-extrabold text-yellow-400">
+                {profile.fullName}
             </div>
-
-            <hr style={{ margin: '12px 0' }} />
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Games Played</div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.stats.gamesPlayed}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Games Won</div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.stats.gamesWon}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Games Lost</div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.stats.gamesLost}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Win Rate</div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>{winRate}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Total Wagered</div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.stats.totalWagered}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: 12, color: '#666' }}>Total Won</div>
-                    <div style={{ fontWeight: 700, fontSize: 18 }}>{profile.stats.totalWon}</div>
-                </div>
+            <div className="text-xs text-gray-400">
+                {profile.email || "No email"}
             </div>
+            <div className="text-xs text-gray-500 mt-1">
+                Joined {new Date(profile.createdAt).toLocaleDateString()}
+            </div>
+            </>
+        )}
+        </div>
 
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                {/* <button onClick={resetStats}>Reset Stats</button> */}
-                <button onClick={exportProfile}>Export</button>
-                <button onClick={async () => {
-                    try {
-                        const res = await ClearMediaCache();
-                    } catch (e) {
-                        console.error('Failed to clear media cache', e);
-                        alert('Failed to clear media cache. See console for details.');
-                    }
-                }}>Clear Media Cache</button>
+        {/* Edit Button */}
+        {!editing && (
+        <button
+            onClick={() => {
+            setEditing(true);
+            setNameDraft(profile.fullName);
+            setAvatarDraft(profile.avatarUrl);
+            }}
+            className="text-sm px-3 py-1 rounded-lg border border-yellow-400/40 text-yellow-400 hover:bg-yellow-400 hover:text-black transition"
+        >
+            Edit
+        </button>
+        )}
+    </div>
+
+    {/* Upload status */}
+    {editing && (
+        <div className="mt-3 text-xs text-gray-400">
+        {uploadingAvatar
+            ? "Uploading avatar…"
+            : avatarDraft
+            ? "Avatar ready to save"
+            : "No avatar selected"}
+        </div>
+    )}
+
+    {/* ACTIONS */}
+    {editing && (
+        <div className="flex gap-3 mt-4">
+        <button
+            onClick={saveProfile}
+            className="flex-1 py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold hover:brightness-110 transition"
+        >
+            Save
+        </button>
+        <button
+            onClick={() => {
+            setEditing(false);
+            setNameDraft(profile.fullName);
+            setAvatarDraft(profile.avatarUrl);
+            }}
+            className="flex-1 py-2 rounded-xl border border-gray-500 text-gray-300 hover:bg-gray-700 transition"
+        >
+            Cancel
+        </button>
+        </div>
+    )}
+
+    {/* DIVIDER */}
+    <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/40 to-transparent my-6" />
+
+    {/* WALLET */}
+    <div className="text-center mb-4">
+        <div className="text-xs text-gray-400 uppercase tracking-wide">
+        Wallet Balance
+        </div>
+        <div className="text-2xl font-extrabold text-green-400">
+        {formatWallet(profile.wallet)}
+        </div>
+    </div>
+
+    {/* STATS */}
+    <div className="grid grid-cols-2 gap-4 text-center">
+        {[
+        ["Games Played", profile.stats.gamesPlayed],
+        ["Games Won", profile.stats.gamesWon],
+        ["Games Lost", profile.stats.gamesLost],
+        ["Win Rate", winRate],
+        ["Total Wagered", profile.stats.totalWagered],
+        ["Total Won", profile.stats.totalWon],
+        ].map(([label, value]) => (
+        <div
+            key={label}
+            className="bg-black/50 border border-yellow-500/20 rounded-xl p-3 shadow-inner"
+        >
+            <div className="text-xs text-gray-400">{label}</div>
+            <div className="text-lg font-extrabold text-yellow-400">
+            {value}
             </div>
         </div>
+        ))}
+    </div>
+
+    {/* FOOTER ACTIONS */}
+    <div className="mt-6 grid grid-cols-2 gap-4">
+        <button
+            // onClick={handleTopUp} // implement this
+            className="
+            py-3 rounded-xl
+            bg-gradient-to-r from-green-400 to-emerald-600
+            text-black font-extrabold tracking-wide
+            shadow-lg
+            hover:brightness-110 hover:scale-[1.02]
+            active:scale-95
+            transition-all
+            "
+        >
+            💳 Top Up
+        </button>
+        <button
+            //   onClick={handleWithdraw}
+            disabled={profile.wallet.balance <= 0}
+            className={`
+                py-3 rounded-xl font-extrabold transition-all
+                ${profile.wallet.balance > 0
+                ? "bg-gradient-to-r from-yellow-400 to-red-600 text-black hover:brightness-110 hover:scale-[1.02]"
+                : "bg-gray-600 text-gray-400 cursor-not-allowed"}
+            `}
+            >
+        💸 WITHDRAW
+        </button>
+    </div>
+    </div>
     );
 }
-
-// const getUserProfile = async (userId) => {
-//     if (!userId) return null;   
-//     try {
-//         const db = getDatabase();
-//         const profileRef = ref(db, `users/${userId}`);
-//         const snapshot = await get(profileRef);
-//         return snapshot.val();
-//     } catch (e) {
-//         console.error('Error fetching user profile', e);
-//         return null;
-//     }
-// };  
 
 const getUserProfile = async () => {
   try{
