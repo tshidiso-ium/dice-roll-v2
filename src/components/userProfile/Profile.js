@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getDatabase, ref as dbRef, onValue, set } from 'firebase/database';
 import { ClearBrowserCache } from '../utils/clearCashe';
 import { ClearMediaCache } from '../utils/clearMediaCache';
+import TopUpModal from './topUp';
 const STORAGE_KEY = 'dice_profile_v1';
 
 function defaultProfile() {
@@ -39,6 +40,7 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     });
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [showTopUp, setShowTopUp] = useState(false);
     const formatWallet = (w) => {
         if (w === null || typeof w === 'undefined' || w === '') return '—';
         if (typeof w === 'string' || typeof w === 'number') return String(w);
@@ -94,52 +96,6 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     };
 
     // handle avatar file: upload to Firebase Storage when possible, otherwise convert to data URL
-
-    // const handleAvatarFile = async (file) => {
-    //     if (!file) return;
-    //     setUploadingAvatar(true);
-    //     setUploadProgress(0);
-    //     try {
-    //         // try Firebase Storage if initialized and userId present
-    //         if (userId) {
-    //             try {
-    //                 const storage = getStorage();
-    //                 const path = `avatars/${userId}/${Date.now()}_${file.name}`;
-    //                 const sRef = storageRef(storage, path);
-    //                 // uploadBytes doesn't provide progress in this helper; for simplicity we call it
-    //                 await uploadBytes(sRef, file);
-    //                 const url = await getDownloadURL(sRef);
-    //                 setAvatarDraft(url);
-    //                 // persist immediately
-    //                 const updated = { ...profile, avatarUrl: url };
-    //                 setProfile(updated);
-    //                 await writeProfile(updated);
-    //                 setUploadingAvatar(false);
-    //                 return;
-    //             } catch (err) {
-    //                 console.warn('Firebase Storage upload failed, falling back to data URL', err);
-    //             }
-    //         }
-
-    //         // fallback: read as data URL and store inline
-    //         await new Promise((resolve, reject) => {
-    //             const reader = new FileReader();
-    //             reader.onload = () => {
-    //                 const url = reader.result;
-    //                 setAvatarDraft(url);
-    //                 const updated = { ...profile, avatarUrl: url };
-    //                 setProfile(updated);
-    //                 writeProfile(updated).then(resolve).catch(resolve);
-    //             };
-    //             reader.onerror = (e) => reject(e);
-    //             reader.readAsDataURL(file);
-    //         });
-    //     } catch (e) {
-    //         console.error('Avatar upload failed', e);
-    //     } finally {
-    //         setUploadingAvatar(false);
-    //     }
-    // };
 
     const handleAvatarFile = async (file) => {
         console.log("file handleAvatarFile: ", file);
@@ -225,33 +181,6 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         setEditing(false);
     };
 
-    // const resetStats = () => {
-    //     const updated = {
-    //         ...profile,
-    //         stats: {
-    //             gamesPlayed: 0,
-    //             gamesWon: 0,
-    //             gamesLost: 0,
-    //             totalWagered: 0,
-    //             totalWon: 0
-    //         }
-    //     };
-    //     setProfile(updated);
-    //     writeProfile(updated);
-    // };
-
-    const exportProfile = () => {
-        const data = JSON.stringify(profile, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'dice-profile.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    
 
     return (
     <div className="max-w-md mx-auto bg-gradient-to-br from-[#1a0000] to-[#0a0000] border border-yellow-500/30 rounded-2xl shadow-2xl p-6 text-white">
@@ -406,7 +335,7 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     {/* FOOTER ACTIONS */}
     <div className="mt-6 grid grid-cols-2 gap-4">
         <button
-            // onClick={handleTopUp} // implement this
+            onClick={() => setShowTopUp(true)}
             className="
             py-3 rounded-xl
             bg-gradient-to-r from-green-400 to-emerald-600
@@ -432,6 +361,31 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         💸 WITHDRAW
         </button>
     </div>
+
+    <TopUpModal
+        open={showTopUp}
+        onClose={() => setShowTopUp(false)}
+        wallet={{
+            todayDeposited: profile.wallet.todayDeposited,
+            monthDeposited: profile.wallet.monthDeposited,
+        }}
+        onRedirectToPayment={async (amount) => {
+            var idToken = localStorage.getItem("idToken");
+            const url = new URL('https://payments-2wtihj5jvq-uc.a.run.app/createTopUpPayment');
+            url.searchParams.append('idToken', idToken);
+            const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("idToken")}`,
+            },
+            body: JSON.stringify({ amount }),
+            });
+
+            const data = await res.json();
+            window.location.href = data.checkoutUrl;
+        }}
+    />
     </div>
     );
 }
