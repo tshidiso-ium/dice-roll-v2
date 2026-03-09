@@ -20,6 +20,7 @@ const Login = ({userLoggedIn}) => {
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [modalState, setStateModal] = useState({'showModal': false, "text": '', "title" :'', 'icon': ''});
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +33,7 @@ const Login = ({userLoggedIn}) => {
     e.preventDefault();
     console.log("loging in")
     setError(null);
+    setIsLoading(true); // 🔄 START LOADING
     try {
       const result = await signInWithEmailAndPassword(auth,email, password);
 
@@ -67,11 +69,13 @@ const Login = ({userLoggedIn}) => {
     } catch (err) {
       console.log(err);
       setError(getAuthErrorMessage(err));
+      setIsLoading(false); // 🔄 START LOADING
     }
     finally {
       // Ensure the Popup is dismissed after the sign-in process is complete or encounters an error
       setTimeout(() => {
         setStateModal({'showModal': false, "text": '', "title" :'', 'icon': ''})
+        setIsLoading(false); // 🔄 START LOADING
       }, 3000); // Adjust the delay as needed
     }
   };
@@ -272,9 +276,24 @@ const Login = ({userLoggedIn}) => {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-red-600 text-black font-extrabold tracking-wide hover:brightness-125 transition"
+            disabled={isLoading}
+            className={`
+                w-full py-3 rounded-xl font-extrabold tracking-wide transition
+                ${isLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-yellow-400 to-red-600 hover:brightness-125"}
+                text-black flex items-center justify-center gap-2
+            `}
           >
-            LOGIN
+          {isLoading ? (
+              <>
+              <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              LOGING IN...
+              </>
+          ) : (
+              "LOGIN"
+          )}
+            
           </button>
 
         </form>

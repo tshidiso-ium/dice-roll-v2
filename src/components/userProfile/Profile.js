@@ -374,15 +374,16 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
             const url = new URL('https://payments-2wtihj5jvq-uc.a.run.app/createTopUpPayment');
             url.searchParams.append('idToken', idToken);
             const res = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("idToken")}`,
-            },
-            body: JSON.stringify({ amount }),
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("idToken")}`,
+                },
+                body: JSON.stringify({ amount }),
             });
 
             const data = await res.json();
+            console.log("Res: ", data);
             window.location.href = data.checkoutUrl;
         }}
     />
