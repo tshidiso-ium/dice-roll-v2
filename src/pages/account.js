@@ -1,7 +1,10 @@
 import NavMobile from '../components/header/header'
 import Profile from '../components/userProfile/Profile';
+import { useLocation } from "react-router-dom";
 
 export default function AccountPage({userLoggedOut, redirect}){
+    const location = useLocation();
+
     const onUserLogout  = () => {
         localStorage.removeItem("userId");
         localStorage.removeItem("idToken");
@@ -15,7 +18,7 @@ export default function AccountPage({userLoggedOut, redirect}){
 
     return (
         <div className="h-screen bg-gradient-to-r from-black via-red-900 to-black text-yellow-300 font-mono">
-            <NavMobile userLogedOut = {onUserLogout}  redirect={onRedirect}/>
+            <NavMobile userLogedOut = {onUserLogout}  redirect={onRedirect} currentPath={location.pathname}/>
             <div className='flex justify-center items-center'>
                 <Profile />
             </div>

@@ -1,4 +1,4 @@
-
+import { useLocation } from "react-router-dom";
 import Boards from '../components/boards/boards';
 import Game from '../components/game/game';
 import React, { useState, useEffect } from 'react';
@@ -8,7 +8,7 @@ export default function HomePage({userLoggedOut, redirect}){
   const [joinedBoard, setJoinedBoard] = useState('');
   const [playAgain, setPlayAgain] = useState(null);
   const [userLogedIn, setUserLogedIn] = useState(false);
-
+  const location = useLocation();
   const onRedirect = (href) => {
         console.log("Home page on redirect")
         redirect(href)
@@ -57,7 +57,9 @@ export default function HomePage({userLoggedOut, redirect}){
 
   return (
     <div className="h-screen bg-gradient-to-r from-black via-red-900 to-black text-yellow-300 font-mono">
-        <NavMobile userLogedOut = {onUserLogout}  redirect={onRedirect}/>
+        <div className="overflow-hidden">
+            <NavMobile userLogedOut = {onUserLogout}  redirect={onRedirect} currentPath={location.pathname}/>
+        </div>
         {
             joinedBoard ? 
                 <>

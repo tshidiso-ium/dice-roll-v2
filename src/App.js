@@ -1,94 +1,119 @@
-import './App.css';
-import Login from './pages/login';
-import Register from './pages/register';
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route   } from 'react-router-dom';
-import AccountPage from './pages/account';
-import HomePage from './pages/home';
+import "./App.css";
+import Login from "./pages/login";
+import Register from "./pages/register";
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import AccountPage from "./pages/account";
+import HomePage from "./pages/home";
 
-
-function App() {
-
+function AppRoutes() {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
-
-  useEffect(() => {
-    console.log(userLoggedIn);
-    if (userLoggedIn) {
-      setUserLoggedIn(true);
-      window.location.href = '/home';
-    }
-    else{
-      const { userId, idToken } = getItems("userId", "idToken");
-      if((userId == null || idToken == null) &&  window.location.href !== 'http://localhost:3000/'){
-          window.location.href = '/';
-      }
-      else{
-        setUserLoggedIn(false);
-      }
-    }
-  }, [userLoggedIn]); 
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const getItems = (...keys) => {
     const results = {};
-    keys.forEach(key => {
+    keys.forEach((key) => {
       try {
         const value = localStorage.getItem(key);
-        results[key] = value ? value : null;
+        results[key] = value || null;
       } catch (error) {
-        console.error(`Error parsing localStorage key: ${key}`, error);
+        console.error(`Error reading localStorage key: ${key}`, error);
         results[key] = null;
       }
     });
     return results;
   };
 
- const onUserLogin = async (userInfo) => {
-  if(userInfo.user){
-    console.log("User info: ", userInfo);
-    const user = userInfo.user
-    const idToken =  userInfo._tokenResponse;
-    localStorage.setItem("userId", user.uid );
-    localStorage.setItem("idToken", idToken.idToken );
-    setUserLoggedIn(true);
-    // window.location.href = '/';
-  }
- }
+  useEffect(() => {
+    const { userId, idToken } = getItems("userId", "idToken");
+    const isAuthenticated = !!userId && !!idToken;
+
+    setUserLoggedIn(isAuthenticated);
+
+    if (!isAuthenticated && location.pathname !== "/" && location.pathname !== "/register") {
+      navigate("/", { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
+  const onUserLogin = async (userInfo) => {
+    if (userInfo.user) {
+      const user = userInfo.user;
+      const idToken = userInfo._tokenResponse;
+
+      localStorage.setItem("userId", user.uid);
+      localStorage.setItem("idToken", idToken.idToken);
+
+      setUserLoggedIn(true);
+      navigate("/home", { replace: true });
+    }
+  };
 
   const onUserRegister = async (userInfo) => {
-  if(userInfo.user){
-    const user = userInfo.user
-    localStorage.setItem("userEmail", user.email );
-
-    window.location.href = '/';
-  }
- }
-
+    if (userInfo.user) {
+      const user = userInfo.user;
+      localStorage.setItem("userEmail", user.email);
+      navigate("/", { replace: true });
+    }
+  };
 
   const onUserLogout = () => {
-    const { userId, idToken } = getItems("userId", "idToken");
-    if((userId == null || idToken == null) &&  window.location.href !== 'http://localhost:3000/'){
-      console.log("window location ref: ", window.location.href)
-      setUserLoggedIn(false)
-      window.location.href = '/';
-    }
-  }
+    localStorage.removeItem("userId");
+    localStorage.removeItem("idToken");
+    localStorage.removeItem("userEmail");
+    setUserLoggedIn(false);
+    navigate("/", { replace: true });
+  };
 
   const onRedirect = (href) => {
-    console.log("On redirect: ", href);
-    window.location.href = href;
-  }
+    navigate(href);
+  };
+
   return (
     <div className="h-screen bg-gradient-to-r from-black via-red-900 to-black text-yellow-300 font-mono">
-      <BrowserRouter>
-        <Routes>
-          <Route index element={<Login userLoggedIn = {onUserLogin}/>} />
-          <Route path="/register" exact element={<Register userRegistered = {onUserRegister}/>}/>
-          <Route path="/" exact element={<Login userLoggedIn = {onUserLogin}/>}/>
-          <Route path="/home" element={<HomePage userLoggedOut = {onUserLogout}  redirect={onRedirect}/>} />
-          <Route path="/account"  element={<AccountPage userLoggedOut = {onUserLogout} redirect={onRedirect}/>} />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login userLoggedIn={onUserLogin} />} />
+        <Route
+          path="/register"
+          element={<Register userRegistered={onUserRegister} />}
+        />
+        <Route
+          path="/home"
+          element={
+            userLoggedIn ? (
+              <HomePage userLoggedOut={onUserLogout} redirect={onRedirect} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            userLoggedIn ? (
+              <AccountPage userLoggedOut={onUserLogout} redirect={onRedirect} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+      </Routes>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   );
 }
 
