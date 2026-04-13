@@ -23,6 +23,7 @@ export default function HomePage({userLoggedOut, redirect}){
     };
 
   const onJoinedBoard = (betAmount , boardId)  => {
+        console.log("Joining board with bet: ", betAmount, " and boardId: ", boardId);
         console.log("Board Joined");
         setJoinedBoard(true)
         localStorage.setItem("joinedBoard", boardId );

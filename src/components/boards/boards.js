@@ -5,6 +5,36 @@ import BoardGenerator from "../randomBoardGenerator/boardGenerator";
 import { BoardCard } from "../boardCards/BoardCard";
 import { LoadingBoards } from "../boardCards/LoadingBoards";
 
+const BET_GROUPS = [5, 10];
+
+const parseBetAmount = (amount) => {
+  if (typeof amount === "number") {
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  if (typeof amount === "string") {
+    const parsed = Number(amount.replace(/[^0-9.-]+/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+};
+
+const extractBoardId = (value) => {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "object") {
+    if (typeof value.boardId === "string") return value.boardId;
+    if (typeof value.id === "string") return value.id;
+  }
+
+  return null;
+};
+
 export default function Boards({ boardJoined, playAgain }) {
   const [boards, setBoards] = useState("");
   const [countdowns, setCountdowns] = useState({});
@@ -15,7 +45,31 @@ export default function Boards({ boardJoined, playAgain }) {
     icon: "",
   });
 
-  const BET_GROUPS = [5, 10];
+  const showErrorModal = (message, title = "Something went wrong") => {
+    setStateModal({
+      showModal: true,
+      text: message || "Please try again.",
+      title,
+      icon: "error",
+    });
+  };
+
+  const openModal = () => {
+    setStateModal({
+      showModal: true,
+      text: "",
+      title: "",
+      icon: "",
+    });
+  };
+  const closeModal = () => {
+    setStateModal({
+      showModal: false,
+      text: "",
+      title: "",
+      icon: "",
+    });
+  };
 
   useEffect(() => {
     const dataRef = ref(database, "boards/live");
@@ -25,7 +79,7 @@ export default function Boards({ boardJoined, playAgain }) {
     };
 
     onValue(dataRef, handleDataChange, (error) => {
-      console.error("Listener failed: ", error);
+      console.error("Listener failed:", error);
     });
 
     return () => {
@@ -36,12 +90,21 @@ export default function Boards({ boardJoined, playAgain }) {
   const handleJoinBoard = async (betAmount, boardId) => {
     try {
       const status = await joinBoard(betAmount, boardId);
-      if (status && status?.boardId) {
-        boardJoined(betAmount, status.boardId);
+
+      if (status?.error) {
+        showErrorModal(status.error, "Unable to join board");
+        return;
       }
+
+      if (status?.status === "success" && status?.boardId) {
+        boardJoined(betAmount, status.boardId);
+        return;
+      }
+
+      showErrorModal("Unexpected response while joining the board.", "Join failed");
     } catch (err) {
-      console.log(err);
-      throw new Error(err);
+      console.error("handleJoinBoard error:", err);
+      showErrorModal("A network error occurred while joining the board.", "Join failed");
     }
   };
 
@@ -69,8 +132,9 @@ export default function Boards({ boardJoined, playAgain }) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const newCountdowns = {};
       if (!boards) return;
+
+      const newCountdowns = {};
 
       Object.entries(boards[5] || {}).forEach(([roomId, room]) => {
         newCountdowns[roomId] = calculateTimeLeft(room.closesAt);
@@ -88,57 +152,51 @@ export default function Boards({ boardJoined, playAgain }) {
 
   const joinRandomBoardValue = async (amount) => {
     try {
-      if (amount !== 0) {
-        const result = await randomBoardJoin(amount);
+      const normalizedAmount = parseBetAmount(amount);
 
-        if (result?.status === "success") {
-          if (result?.boardId?.message) {
-            handleJoinBoard(
-              parseInt(amount.replace("R", "")),
-              result.boardId.boardId
-            );
-            localStorage.setItem("joinedBoard", result.boardId.boardId);
-            localStorage.setItem(
-              "betAmount",
-              parseInt(amount.replace("R", ""))
-            );
-          } else {
-            handleJoinBoard(parseInt(amount.replace("R", "")), result.boardId);
-            localStorage.setItem("joinedBoard", result.boardId.boardId);
-            localStorage.setItem(
-              "betAmount",
-              parseInt(amount.replace("R", ""))
-            );
-          }
-        }
-      } else {
-        updateModelState();
+      if (!normalizedAmount) {
+        closeModal();
+        return;
       }
-    } catch (err) {
-      throw new Error(err);
-    }
-  };
 
-  const updateModelState = async () => {
-    setStateModal({
-      showModal: !modalState.showModal,
-      text: "",
-      title: "",
-      icon: "",
-    });
+      const result = await randomBoardJoin(normalizedAmount);
+
+      if (result?.error) {
+        showErrorModal(result.error, "Random board unavailable");
+        return;
+      }
+
+      if (result?.status !== "success") {
+        showErrorModal("Unexpected response from server.", "Random board unavailable");
+        return;
+      }
+
+      const boardId = extractBoardId(result.boardId);
+
+      if (!boardId) {
+        showErrorModal("No board was returned by the server.", "Random board unavailable");
+        return;
+      }
+
+      await handleJoinBoard(normalizedAmount, boardId);
+
+      localStorage.setItem("joinedBoard", boardId);
+      localStorage.setItem("betAmount", String(normalizedAmount));
+    } catch (err) {
+      console.error("joinRandomBoardValue error:", err);
+      showErrorModal(
+        "A network error occurred while looking for a random board.",
+        "Random board unavailable"
+      );
+    }
   };
 
   useEffect(() => {
     if (playAgain) {
-      setStateModal({
-        showModal: false,
-        text: "",
-        title: "",
-        icon: "",
-      });
+      closeModal();
       joinRandomBoardValue(playAgain.betAmount);
     }
-  }, []);
+  }, [playAgain]);
 
   const getValidBoards = (boardsForBet, countdowns) =>
     Object.entries(boardsForBet || {}).filter(
@@ -156,7 +214,6 @@ export default function Boards({ boardJoined, playAgain }) {
   return (
     <>
       <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.10),transparent_20%),linear-gradient(to_bottom,#220404_0%,#120202_45%,#000000_100%)] text-white">
-        {/* Top Hero / Lobby Header */}
         <section className="sticky top-0 z-40 border-b border-yellow-500/20 bg-[#120202]/90 backdrop-blur-xl">
           <div className="mx-auto w-full max-w-7xl px-4 py-4">
             <div className="rounded-[28px] border border-yellow-500/20 bg-gradient-to-r from-[#3b0505] via-[#220404] to-[#120202] p-4 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
@@ -185,7 +242,7 @@ export default function Boards({ boardJoined, playAgain }) {
                   </div>
 
                   <button
-                    onClick={updateModelState}
+                    onClick={openModal}
                     className="group relative overflow-hidden rounded-2xl border border-yellow-400/30 bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 px-5 py-3 text-sm font-extrabold uppercase tracking-[0.12em] text-[#2b1200] shadow-[0_10px_30px_rgba(250,204,21,0.25)] transition hover:-translate-y-[1px] hover:brightness-105"
                   >
                     <span className="relative z-10">🎲 Random Board</span>
@@ -197,13 +254,11 @@ export default function Boards({ boardJoined, playAgain }) {
           </div>
         </section>
 
-        {/* Modal */}
         <BoardGenerator
           modalState={modalState}
           joinRandomBoard={joinRandomBoardValue}
         />
 
-        {/* Boards sections */}
         <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6">
           {BET_GROUPS.map((bet) => {
             const boardsForBet = boards?.[bet];
@@ -294,8 +349,12 @@ const joinBoard = async (betAmount, boardId) => {
   try {
     const userId = localStorage.getItem("userID");
     const idToken = localStorage.getItem("idToken");
-    const url = new URL("https://app-2wtihj5jvq-uc.a.run.app/joinBoard");
 
+    if (!userId || !idToken) {
+      return { error: "Your session has expired. Please log in again." };
+    }
+
+    const url = new URL("https://app-2wtihj5jvq-uc.a.run.app/joinBoard");
     url.searchParams.append("userId", userId);
 
     const res = await fetch(url, {
@@ -306,24 +365,31 @@ const joinBoard = async (betAmount, boardId) => {
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
-        boardId: boardId,
-        betAmount: betAmount,
+        boardId,
+        betAmount,
       }),
     });
 
-    if (res.status === 401 || res.status === 404) {
-      const data = await res.json();
-      return { error: data.message };
-    } else if (res.status === 200) {
-      const data = await res.json();
-      return { status: "success", boardId: data.boardId };
+    const contentType = res.headers.get("content-type");
+    const isJson = contentType?.includes("application/json");
+    const data = isJson ? await res.json() : null;
+
+    if (!res.ok) {
+      return {
+        error:
+          data?.message ||
+          data?.error ||
+          "Unable to join board at the moment.",
+      };
     }
 
-    return { data: "hello World" };
+    return {
+      status: "success",
+      boardId: data?.boardId ?? boardId,
+    };
   } catch (err) {
-    console.log("New User createUser: Error");
-    console.log(err);
-    throw new Error(err);
+    console.error("joinBoard error:", err);
+    return { error: "A network error occurred while joining the board." };
   }
 };
 
@@ -331,8 +397,12 @@ const randomBoardJoin = async (betAmount) => {
   try {
     const userId = localStorage.getItem("userID");
     const idToken = localStorage.getItem("idToken");
-    const url = new URL("https://app-2wtihj5jvq-uc.a.run.app/randomBoardJoin");
 
+    if (!userId || !idToken) {
+      return { error: "Your session has expired. Please log in again." };
+    }
+
+    const url = new URL("https://app-2wtihj5jvq-uc.a.run.app/randomBoardJoin");
     url.searchParams.append("userId", userId);
 
     const res = await fetch(url, {
@@ -343,22 +413,29 @@ const randomBoardJoin = async (betAmount) => {
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
-        betAmount: betAmount,
+        betAmount,
       }),
     });
 
-    if (res.status === 401 || res.status === 404) {
-      const data = await res.json();
-      return { error: data.message };
-    } else if (res.status === 200) {
-      const data = await res.json();
-      return { status: "success", boardId: data.data };
+    const contentType = res.headers.get("content-type");
+    const isJson = contentType?.includes("application/json");
+    const data = isJson ? await res.json() : null;
+    console.log("randomBoardJoin response data:", data);
+    if (!res.ok) {
+      return {
+        error:
+          data?.message ||
+          data?.error ||
+          "Unable to find a random board right now.",
+      };
     }
 
-    return { data: "hello World" };
+    return {
+      status: "success",
+      boardId: data?.data ?? null,
+    };
   } catch (err) {
-    console.log("New User createUser: Error");
-    console.log(err);
-    throw new Error(err);
+    console.error("randomBoardJoin error:", err);
+    return { error: "A network error occurred while finding a random board." };
   }
 };

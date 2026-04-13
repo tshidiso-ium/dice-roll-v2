@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Dice3 } from "lucide-react";
+import { X, Dice3, AlertTriangle } from "lucide-react";
 import { Label } from "../../components/ui/label";
 import { cn } from "../utils/cn";
 
@@ -43,6 +43,22 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
     joinRandomBoard(0);
   };
 
+  const isInsufficientFunds = () => {
+    const title = modalState?.title?.toLowerCase?.() || "";
+    const text = modalState?.text?.toLowerCase?.() || "";
+
+    return (
+      title.includes("insufficient funds") ||
+      text.includes("insufficient funds") ||
+      text.includes("not enough funds") ||
+      text.includes("not enough money") ||
+      text.includes("wallet")
+    );
+  };
+
+  const showErrorMessage = Boolean(modalState?.text || modalState?.title);
+  const insufficientFunds = isInsufficientFunds();
+
   return (
     <AnimatePresence>
       {modalState.showModal && (
@@ -60,13 +76,10 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
             exit="exit"
             className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-yellow-500/30 bg-gradient-to-b from-[#2a0505] via-[#140909] to-black shadow-[0_25px_80px_rgba(0,0,0,0.65)]"
           >
-            {/* top gold accent */}
             <div className="h-[3px] w-full bg-gradient-to-r from-yellow-700 via-yellow-300 to-yellow-700" />
 
-            {/* soft glow layers */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.16),transparent_35%),radial-gradient(circle_at_bottom,rgba(220,38,38,0.16),transparent_45%)]" />
 
-            {/* close button */}
             <button
               onClick={handleCancel}
               aria-label="Close modal"
@@ -76,25 +89,47 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
             </button>
 
             <div className="relative z-10 p-6 sm:p-7">
-              {/* header */}
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-yellow-400/30 bg-gradient-to-br from-yellow-300/20 to-red-700/20 text-yellow-300 shadow-inner">
-                  <Dice3 size={24} />
+                <div
+                  className={cn(
+                    "flex h-14 w-14 items-center justify-center rounded-2xl border shadow-inner",
+                    insufficientFunds
+                      ? "border-red-400/30 bg-gradient-to-br from-red-500/20 to-yellow-600/10 text-red-300"
+                      : "border-yellow-400/30 bg-gradient-to-br from-yellow-300/20 to-red-700/20 text-yellow-300"
+                  )}
+                >
+                  {insufficientFunds ? (
+                    <AlertTriangle size={24} />
+                  ) : (
+                    <Dice3 size={24} />
+                  )}
                 </div>
 
                 <div>
                   <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-yellow-500/70">
-                    High Stakes Entry
+                    {insufficientFunds ? "Wallet Alert" : "High Stakes Entry"}
                   </p>
                   <h2 className="text-l font-extrabold tracking-tight text-yellow-100">
-                    Join Random Board
+                    {modalState?.title || "Join Random Board"}
                   </h2>
                 </div>
               </div>
 
               <p className="text-xs leading-6 text-yellow-100/75">
-                Pick your bet amount and let the system seat you at a live table.
+                {modalState?.text ||
+                  "Pick your bet amount and let the system seat you at a live table."}
               </p>
+
+              {showErrorMessage && insufficientFunds && (
+                <div className="mt-5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-red-950/60 to-red-900/20 px-4 py-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-300">
+                    Unable to continue
+                  </p>
+                  <p className="mt-1 text-sm text-red-100">
+                    Please top up your wallet before joining this board.
+                  </p>
+                </div>
+              )}
 
               <LabelInputContainer className="mt-6">
                 <Label
@@ -125,7 +160,6 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
                 </div>
               </LabelInputContainer>
 
-              {/* selected stake card */}
               <div className="mt-5 rounded-2xl border border-yellow-500/25 bg-gradient-to-r from-yellow-500/10 via-red-600/10 to-yellow-500/10 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                 <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-yellow-400/80">
                   Selected Stake
@@ -135,7 +169,6 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
                 </p>
               </div>
 
-              {/* actions */}
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
