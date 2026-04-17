@@ -231,7 +231,7 @@ const Playersboard = () => {
           <div className="col-span-3 text-center">Status</div>
         </div>
 
-        <div ref={leaderboardContainerRef} className="max-h-[292px] overflow-y-auto p-1">
+        <div ref={leaderboardContainerRef} className="max-h-[192px] lg:max-h-[400px] overflow-y-auto p-1">
           {sortedEntries.length > 0 ? (
             <div className="space-y-2">
               {sortedEntries.map(([key, member], index) => {
