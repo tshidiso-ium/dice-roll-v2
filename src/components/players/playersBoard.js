@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Avatar from "@mui/material/Avatar";
 import { database } from "../../modules/firebase";
 import { ref, onValue, off } from "firebase/database";
@@ -6,10 +6,14 @@ import { ref, onValue, off } from "firebase/database";
 const Playersboard = () => {
   const [data, setData] = useState(null);
   const [players, setPlayers] = useState({});
+  const [showJumpToMe, setShowJumpToMe] = useState(false);
 
   const userId = localStorage.getItem("userId");
   const boardId = localStorage.getItem("joinedBoard");
   const betAmount = localStorage.getItem("betAmount");
+
+  const leaderboardContainerRef = useRef(null);
+  const currentUserRowRef = useRef(null);
 
   useEffect(() => {
     if (!betAmount || !boardId) return;
@@ -30,9 +34,11 @@ const Playersboard = () => {
   useEffect(() => {
     if (data?.players) {
       const filteredPlayers = Object.entries(data.players).filter(
-        ([, player]) => player?.hasOwnProperty("bet")
+        ([, player]) => Object.prototype.hasOwnProperty.call(player || {}, "bet")
       );
       setPlayers(Object.fromEntries(filteredPlayers));
+    } else {
+      setPlayers({});
     }
   }, [data]);
 
@@ -41,6 +47,41 @@ const Playersboard = () => {
       ([, memberA], [, memberB]) => (memberB?.score || 0) - (memberA?.score || 0)
     );
   }, [players]);
+
+  const currentUserEntry = useMemo(() => {
+    const index = sortedEntries.findIndex(([key]) => key === userId);
+    if (index === -1) return null;
+
+    const [key, member] = sortedEntries[index];
+    return { key, member, index };
+  }, [sortedEntries, userId]);
+
+  useEffect(() => {
+    if (!currentUserEntry || !leaderboardContainerRef.current || !currentUserRowRef.current) {
+      setShowJumpToMe(false);
+      return;
+    }
+
+    const container = leaderboardContainerRef.current;
+    const row = currentUserRowRef.current;
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+
+    const rowAbove = rowRect.top < containerRect.top;
+    const rowBelow = rowRect.bottom > containerRect.bottom;
+
+    setShowJumpToMe(rowAbove || rowBelow);
+  }, [sortedEntries, currentUserEntry]);
+
+  const scrollToCurrentUser = () => {
+    if (currentUserRowRef.current) {
+      currentUserRowRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  };
 
   const getMedal = (index) => {
     if (index === 0) return "🥇";
@@ -78,7 +119,7 @@ const Playersboard = () => {
       };
     }
 
-    if (value.includes("active") || value.includes("playing")) {
+    if (value.includes("active") || value.includes("playing") || value.includes("rolling")) {
       return {
         border: "border-red-500/30",
         bg: "bg-red-500/10",
@@ -102,23 +143,86 @@ const Playersboard = () => {
     }
 
     if (isCurrentUser) {
-      return "border-yellow-400/30 bg-gradient-to-r from-yellow-500/12 via-red-800/25 to-black shadow-[0_8px_20px_rgba(250,204,21,0.08)]";
+      return "border-yellow-400/50 bg-gradient-to-r from-yellow-500/20 via-red-800/25 to-black shadow-[0_8px_20px_rgba(250,204,21,0.12)]";
     }
 
     return "border-white/8 bg-white/[0.03] hover:bg-white/[0.05]";
   };
 
   return (
-    <section className=" text-white ">
-      <div className="overflow-hidden  border-yellow-500/20 bg-gradient-to-b from-[#2a0505] via-[#140909] to-black shadow-[0_18px_45px_rgba(0,0,0,0.45)]">
-
+    <section className="text-white">
+      <div className="overflow-hidden border-yellow-500/20 bg-gradient-to-b from-[#2a0505] via-[#140909] to-black shadow-[0_18px_45px_rgba(0,0,0,0.45)]">
         <div className="flex items-center justify-between border-b border-yellow-500/10 px-4 py-2">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-yellow-500/70">
               Live Leaderboard
             </p>
           </div>
+
+          {currentUserEntry && showJumpToMe && (
+            <button
+              type="button"
+              onClick={scrollToCurrentUser}
+              className="rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-yellow-200 transition hover:bg-yellow-500/20"
+            >
+              Jump to Me
+            </button>
+          )}
         </div>
+
+        {currentUserEntry && (
+          <div className="border-b border-yellow-500/10 bg-yellow-500/10 px-4 py-3">
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-yellow-300/80">
+              Your Position
+            </p>
+
+            <div className="mt-2 grid grid-cols-12 items-center rounded-2xl border border-yellow-400/30 bg-gradient-to-r from-yellow-500/10 via-yellow-400/5 to-transparent px-3 py-2 shadow-[0_0_0_1px_rgba(250,204,21,0.06)]">
+              <div className="col-span-2 flex justify-center">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-yellow-400/40 bg-yellow-500/15 text-xs font-extrabold text-yellow-200">
+                  {currentUserEntry.index + 1}
+                </div>
+              </div>
+
+              <div className="col-span-5 flex min-w-0 items-center gap-2">
+                <div className="rounded-full border border-yellow-400/40 p-[2px]">
+                  <Avatar
+                    alt={currentUserEntry.member?.userName || "You"}
+                    src={currentUserEntry.member?.picture}
+                    sx={{ width: 28, height: 28 }}
+                  />
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-yellow-100">
+                    {currentUserEntry.member?.userName || "You"}
+                  </p>
+                  <p className="truncate text-[9px] uppercase tracking-wide text-yellow-300/70">
+                    You
+                  </p>
+                </div>
+              </div>
+
+              <div className="col-span-2 text-center">
+                <div className="inline-flex min-w-[22px] items-center justify-center rounded-xl border border-yellow-400/30 bg-yellow-500/15 px-2 py-2 text-[9px] font-extrabold text-yellow-100">
+                  {currentUserEntry.member?.score ?? 0}
+                </div>
+              </div>
+
+              <div className="col-span-3 flex justify-center">
+                {(() => {
+                  const tone = getStatusTone(currentUserEntry.member?.status);
+                  return (
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wide ${tone.border} ${tone.bg} ${tone.text}`}
+                    >
+                      {currentUserEntry.member?.status || "Pending"}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-12 border-b border-yellow-500/10 bg-black/20 px-4 py-2 text-[9px] font-bold uppercase tracking-[0.18em] text-yellow-400/80">
           <div className="col-span-2 text-center">Pos</div>
@@ -127,7 +231,7 @@ const Playersboard = () => {
           <div className="col-span-3 text-center">Status</div>
         </div>
 
-        <div className="p-1">
+        <div ref={leaderboardContainerRef} className="max-h-[292px] overflow-y-auto p-1">
           {sortedEntries.length > 0 ? (
             <div className="space-y-2">
               {sortedEntries.map(([key, member], index) => {
@@ -139,6 +243,7 @@ const Playersboard = () => {
                 return (
                   <div
                     key={key}
+                    ref={isCurrentUser ? currentUserRowRef : null}
                     className={`grid grid-cols-12 items-center rounded-2xl border px-3 py-1 transition ${getRowTone(
                       member,
                       key
@@ -155,6 +260,8 @@ const Playersboard = () => {
                             ? "border-white/20 bg-white/10 text-white"
                             : index === 2
                             ? "border-amber-700/30 bg-amber-700/15 text-amber-300"
+                            : isCurrentUser
+                            ? "border-yellow-400/40 bg-yellow-500/15 text-yellow-100"
                             : "border-white/10 bg-white/[0.04] text-white/80"
                         }`}
                       >
@@ -168,6 +275,8 @@ const Playersboard = () => {
                           className={`rounded-full border p-[2px] ${
                             out
                               ? "border-red-700/40"
+                              : isCurrentUser
+                              ? "border-yellow-400/50"
                               : "border-yellow-400/30"
                           }`}
                         >
@@ -200,6 +309,8 @@ const Playersboard = () => {
                           className={`truncate text-[9px] uppercase tracking-wide ${
                             out
                               ? "text-red-300/70"
+                              : isCurrentUser
+                              ? "text-yellow-300/80"
                               : "text-yellow-400/60"
                           }`}
                         >
@@ -213,6 +324,8 @@ const Playersboard = () => {
                         className={`inline-flex min-w-[22px] items-center justify-center rounded-xl border px-2 py-2 text-[9px] font-extrabold ${
                           out
                             ? "border-red-700/40 bg-red-950/50 text-red-200"
+                            : isCurrentUser
+                            ? "border-yellow-400/40 bg-yellow-500/15 text-yellow-100"
                             : "border-red-500/20 bg-red-500/10 text-red-100"
                         }`}
                       >

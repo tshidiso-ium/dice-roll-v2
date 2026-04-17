@@ -149,8 +149,8 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         }
     };
 
-    const winRate = profile.stats.gamesPlayed
-        ? ((profile.stats.gamesWon / profile.stats.gamesPlayed) * 100).toFixed(1) + '%'
+    const winRate = profile.gamesPlayed
+        ? ((profile.gamesWon / profile.gamesPlayed) * 100).toFixed(1) + '%'
         : '—';
 
     const initials = (profile.fullName || 'P')
@@ -313,17 +313,18 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     {/* STATS */}
     <div className="grid grid-cols-2 gap-4 text-center">
         {[
-        ["Games Played", profile.stats.gamesPlayed],
-        ["Games Won", profile.stats.gamesWon],
-        ["Games Lost", profile.stats.gamesLost],
+        ["Games Played", profile.gamesPlayed],
+        ["Games Won", profile.gamesWon],
+        ["Games Lost", (profile.gamesPlayed - profile.gamesWon)],
         ["Win Rate", winRate],
-        ["Total Wagered", profile.stats.totalWagered],
-        ["Total Won", profile.stats.totalWon],
+        ["Total Wagered", profile.totalWagered],
+        ["Total Won", profile.totalWon],
         ].map(([label, value]) => (
         <div
             key={label}
             className="bg-black/50 border border-yellow-500/20 rounded-xl p-3 shadow-inner"
         >
+            {console.log("Rendering stat: ", label, value)}
             <div className="text-xs text-gray-400">{label}</div>
             <div className="text-lg font-extrabold text-yellow-400">
             {value}

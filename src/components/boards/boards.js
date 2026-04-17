@@ -62,6 +62,7 @@ export default function Boards({ boardJoined, playAgain }) {
       icon: "",
     });
   };
+
   const closeModal = () => {
     setStateModal({
       showModal: false,
@@ -178,6 +179,7 @@ export default function Boards({ boardJoined, playAgain }) {
         return;
       }
 
+      console.log("result:", result);
       await handleJoinBoard(normalizedAmount, boardId);
 
       localStorage.setItem("joinedBoard", boardId);
@@ -236,11 +238,10 @@ export default function Boards({ boardJoined, playAgain }) {
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-500/70">
                       Live now
                     </p>
-                    <p className="mt-1 text-xl font-extrabold text-yellow-100">
+                    <p className="mt-1 text-xl font-extrabold text-yellow-100 flex justify-center">
                       {totalLiveBoards}
                     </p>
                   </div>
-
                   <button
                     onClick={openModal}
                     className="group relative overflow-hidden rounded-2xl border border-yellow-400/30 bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500 px-5 py-3 text-sm font-extrabold uppercase tracking-[0.12em] text-[#2b1200] shadow-[0_10px_30px_rgba(250,204,21,0.25)] transition hover:-translate-y-[1px] hover:brightness-105"
@@ -343,7 +344,7 @@ export default function Boards({ boardJoined, playAgain }) {
       </div>
     </>
   );
-}
+};
 
 const joinBoard = async (betAmount, boardId) => {
   try {

@@ -27,6 +27,8 @@ const modalMotion = {
 
 const BET_OPTIONS = ["R5", "R10", "R15", "R20", "R25", "R30", "R35", "R40"];
 
+const AuthExpired = "Firebase ID token has expired. Get a fresh ID token from your client app and try again (auth/id-token-expired). See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token."
+
 const BoardGenerator = ({ modalState, joinRandomBoard }) => {
   const [selectedOption, setSelectedOption] = useState("R5");
 
@@ -115,9 +117,8 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
                 </div>
               </div>
 
-              <p className="text-xs leading-6 text-yellow-100/75">
-                {modalState?.text ||
-                  "Pick your bet amount and let the system seat you at a live table."}
+              <p className={`text-xs leading-6 text-yellow-100/75`}>
+                {modalState?.text === AuthExpired ? "Session expired" : modalState?.text}
               </p>
 
               {showErrorMessage && insufficientFunds && (
@@ -127,6 +128,17 @@ const BoardGenerator = ({ modalState, joinRandomBoard }) => {
                   </p>
                   <p className="mt-1 text-sm text-red-100">
                     Please top up your wallet before joining this board.
+                  </p>
+                </div>
+              )}
+
+              { modalState?.text === AuthExpired  && (
+                <div className="mt-5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-red-950/60 to-red-900/20 px-4 py-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-300">
+                    Unable to continue
+                  </p>
+                  <p className="mt-1 text-sm text-red-100">
+                    Please logout and login again to continue.
                   </p>
                 </div>
               )}
