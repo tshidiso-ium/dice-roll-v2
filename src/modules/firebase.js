@@ -1,8 +1,8 @@
 // src/firebase.js
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getDatabase, ref as databaseRef, onValue, set, off } from 'firebase/database';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDatabase } from 'firebase/database';
+import { getStorage } from 'firebase/storage';
 
 
 // const firebaseConfig = {

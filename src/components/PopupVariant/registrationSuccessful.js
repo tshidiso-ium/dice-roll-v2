@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import WindowSize from '../../modules/windowSize';
 import { Label } from "../../components/ui/label";
 import { cn } from '../utils/cn';
-import logo from '../../images/dice-red.jpg';
 
 const backdrop = {
   visible: { opacity: 1 },
@@ -11,7 +9,6 @@ const backdrop = {
 };
 
 function ModalProps() {
-  const device = WindowSize();
   return {
     hidden: { y: "-100vh", opacity: 0 },
     visible: {
@@ -175,6 +172,9 @@ const RegistrationSuccessful = ({ modalState }) => {
     <AnimatePresence>
       {modalState.showModal && (
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="registration-success-title"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm"
           variants={backdrop}
           initial="hidden"
@@ -191,11 +191,12 @@ const RegistrationSuccessful = ({ modalState }) => {
             }}
             variants={modal}
           >
-            {/* Optional icon */}
-            {/* {modalState.icon && <Icons icon={modalState.icon} />} */}
+            {modalState.icon && <Icons icon={modalState.icon} />}
 
             {/* Close Button */}
             <button
+              type="button"
+              aria-label="Close registration message"
               className="absolute top-4 right-4 text-yellow-400 text-2xl font-bold hover:text-red-500 transition-all z-50"
               onClick={handleCancel}
             >
@@ -204,7 +205,7 @@ const RegistrationSuccessful = ({ modalState }) => {
 
             {/* Modal content */}
             <div className="z-10 relative backdrop-blur-sm p-4">
-              <h2 className="text-center text-3xl font-extrabold text-yellow-400 drop-shadow-md font-mono">
+              <h2 id="registration-success-title" className="text-center text-3xl font-extrabold text-yellow-400 drop-shadow-md font-mono">
                 {'REGISTRATION SUCCESSFUL!'}
               </h2>
 

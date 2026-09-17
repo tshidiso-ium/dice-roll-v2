@@ -1,81 +1,71 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Dice from "react-dice-roll";
 import "./home.css";
 import { database } from "../../modules/firebase";
 import { ref, onValue, off } from "firebase/database";
+import { getUserId } from "../../modules/sessionStorage";
+import { apiRequest } from "../../modules/apiClient";
 
-export default function DiceRoller({ updateMyScore }) {
+export default function DiceRoller() {
   const [userData, setUserData] = useState("");
   const [dice1, setDice1] = useState(0);
   const [dice2, setDice2] = useState(0);
   const [rolling, setRolling] = useState(false);
-  const [canVibrate, setCanVibrate] = useState("");
+  const [rollError, setRollError] = useState("");
+  const firstDiceRef = useRef(null);
+  const secondDiceRef = useRef(null);
 
-  const diceRef = useRef(null);
-  const diceRef2 = useRef(null);
-
-  const userId = localStorage.getItem("userId");
+  const userId = getUserId();
   const boardId = localStorage.getItem("joinedBoard");
   const betAmount = localStorage.getItem("betAmount");
-  const userRef = ref(
-    database,
-    `boards/live/${betAmount}/${boardId}/players/${userId}`
-  );
-
   useEffect(() => {
-    const unsubscribe = getScore();
-
-    if ("vibrate" in navigator) {
-      setCanVibrate("Vibration API supported");
-    } else {
-      setCanVibrate("Vibration API not supported");
-    }
-
-    return () => {
-      if (typeof unsubscribe === "function") unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (userData && userData.status === "Rolling") {
-      diceRef.current?.rollDice();
-      diceRef2.current?.rollDice();
-      updateMyScore(dice1 + dice2);
-    } else if (userData && userData.status === "Out") {
-      diceRef.current?.rollDice();
-      diceRef2.current?.rollDice();
-    }
-  }, [dice1, dice2]);
-
-  const rollDice = async () => {
-    await rollDeDice(boardId, betAmount);
-
-    if (diceRef.current && diceRef2.current) {
-      setRolling(true);
-    }
-
-    if (navigator.vibrate) {
-      navigator.vibrate([50, 20, 50, 20, 50, 50, 20, 50, 20, 50]);
-    }
-
-    setTimeout(() => {
-      setRolling(false);
-    }, 1000);
-  };
-
-  const getScore = () => {
+    if (!userId || !boardId || !betAmount) return undefined;
+    const userRef = ref(
+      database,
+      `boards/live/${betAmount}/${boardId}/players/${userId}`
+    );
     const handleDataChange = (snapshot) => {
       const value = snapshot.val();
       setUserData(value);
       setDice1(value?.dice1);
       setDice2(value?.dice2);
     };
-
     onValue(userRef, handleDataChange);
 
     return () => {
       off(userRef, "value", handleDataChange);
     };
+  }, [betAmount, boardId, userId]);
+
+  useEffect(() => {
+    const hasServerResult = [dice1, dice2].every((value) => {
+      const result = Number(value);
+      return Number.isInteger(result) && result >= 1 && result <= 6;
+    });
+
+    if (hasServerResult) {
+      firstDiceRef.current?.rollDice();
+      secondDiceRef.current?.rollDice();
+    }
+  }, [dice1, dice2]);
+
+  const rollDice = async () => {
+    if (rolling || !isRollingState) return;
+    setRolling(true);
+    setRollError("");
+
+    if (navigator.vibrate) {
+      navigator.vibrate([50, 20, 50, 20, 50, 50, 20, 50, 20, 50]);
+    }
+
+    try {
+      const result = await rollDeDice(boardId, betAmount);
+      if (result?.error) setRollError(result.error);
+    } finally {
+      window.setTimeout(() => {
+      setRolling(false);
+      }, 1000);
+    }
   };
 
   const safeNumber = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -139,6 +129,9 @@ export default function DiceRoller({ updateMyScore }) {
 
           {/* dice */}
           <div
+            role="group"
+            aria-label="Dice controls"
+            aria-busy={rolling}
             className="z-10 mt-1 flex flex-nowrap gap-6"
             onClick={isRollingState && !rolling ? rollDice : undefined}
           >
@@ -152,10 +145,12 @@ export default function DiceRoller({ updateMyScore }) {
               }`}
             >
               <Dice
-                ref={diceRef2}
-                cheatValue={dice1}
+                ref={firstDiceRef}
+                cheatValue={safeDiceValue(dice1)}
                 size={100}
-                triggers={rolling || isOut ? [] : ["click"]}
+                triggers={[]}
+                disabled={!isRollingState || rolling}
+                aria-label="Roll both dice"
               />
             </div>
 
@@ -169,13 +164,21 @@ export default function DiceRoller({ updateMyScore }) {
               }`}
             >
               <Dice
-                ref={diceRef}
-                cheatValue={dice2}
+                ref={secondDiceRef}
+                cheatValue={safeDiceValue(dice2)}
                 size={100}
-                triggers={rolling || isOut ? [] : ["click"]}
+                triggers={[]}
+                disabled={!isRollingState || rolling}
+                aria-label="Roll both dice"
               />
             </div>
           </div>
+
+          {rollError && (
+            <p role="alert" className="w-full text-center text-sm text-red-300">
+              {rollError}
+            </p>
+          )}
 
           {/* out notice */}
           {isOut && (
@@ -194,39 +197,24 @@ export default function DiceRoller({ updateMyScore }) {
   );
 }
 
+const VALID_DICE_VALUES = new Set([1, 2, 3, 4, 5, 6]);
+
+function safeDiceValue(value) {
+  const normalized = Number(value);
+  return Number.isInteger(normalized) && VALID_DICE_VALUES.has(normalized)
+    ? normalized
+    : undefined;
+}
+
 const rollDeDice = async (boardId, betAmount) => {
   try {
-    const userId = localStorage.getItem("userID");
-    const idToken = localStorage.getItem("idToken");
-    const url = new URL("https://app-2wtihj5jvq-uc.a.run.app/rollDice");
-
-    url.searchParams.append("userId", userId);
-
-    const res = await fetch(url, {
+    const {data} = await apiRequest("app", "/rollDice", {
       method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({
-        boardId: boardId,
-        betAmount: betAmount,
-      }),
+      includeUserId: true,
+      body: {boardId, betAmount},
     });
-
-    if (res.status === 401 || res.status === 404) {
-      const data = await res.json();
-      return { error: data.message };
-    } else if (res.status === 200) {
-      const data = await res.json();
-      return { status: "success", dice: data.data, boardId: data.boardId };
-    }
-
-    return { data: "hello World" };
+    return { status: "success", dice: data.data, boardId: data.boardId };
   } catch (err) {
-    console.log("New User createUser: Error");
-    console.log(err);
-    throw new Error(err);
+    return {error: err?.message || "Unable to roll the dice right now."};
   }
 };

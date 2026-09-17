@@ -1,46 +1,37 @@
 import { useLocation } from "react-router-dom";
 import Boards from '../components/boards/boards';
 import Game from '../components/game/game';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import NavMobile from '../components/header/header'
+import { clearAuthSession } from '../modules/sessionStorage';
 
 export default function HomePage({userLoggedOut, redirect}){
   const [joinedBoard, setJoinedBoard] = useState('');
   const [playAgain, setPlayAgain] = useState(null);
-  const [userLogedIn, setUserLogedIn] = useState(false);
   const location = useLocation();
   const onRedirect = (href) => {
-        console.log("Home page on redirect")
         redirect(href)
   }
 
   const onUserLogout  = () => {
-        console.log("User log out")
-        localStorage.removeItem("userId");
-        localStorage.removeItem("idToken");
+        clearAuthSession();
         localStorage.removeItem("userEmail");
         userLoggedOut();
     };
 
   const onJoinedBoard = (betAmount , boardId)  => {
-        console.log("Joining board with bet: ", betAmount, " and boardId: ", boardId);
-        console.log("Board Joined");
         setJoinedBoard(true)
         localStorage.setItem("joinedBoard", boardId );
         localStorage.setItem("betAmount", betAmount );
     };
 
   const onGameConclusion = (res) => {
-        console.log("Game res: ",res);
-        console.log("Game Conclusion");
         clearGameStorage();
         if(res === 0){
-            console.log("No play again");
             setJoinedBoard('');
             setPlayAgain(null);
         }
         else{
-            console.log("Play again");
             setJoinedBoard('');
             setPlayAgain(res);       
         }
@@ -48,7 +39,6 @@ export default function HomePage({userLoggedOut, redirect}){
 
     function clearGameStorage() {
         try {
-            console.log("Clearing game related localStorage items");
             localStorage.removeItem("joinedBoard");
             localStorage.removeItem("betAmount");
         } catch (err) {

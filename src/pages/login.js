@@ -19,7 +19,6 @@ const Login = ({userLoggedIn}) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [modalState, setStateModal] = useState({'showModal': false, "text": '', "title" :'', 'icon': ''});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -31,51 +30,30 @@ const Login = ({userLoggedIn}) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("loging in")
     setError(null);
     setIsLoading(true); // 🔄 START LOADING
     try {
       const result = await signInWithEmailAndPassword(auth,email, password);
 
-      console.log(result.user);
         const verified = await accountVerified(result);
-        console.log("Account verified: ", verified);
         if(verified === false){
           return;
         }
-      const idToken = await result._tokenResponse;
-      const uid = await verifyUser(idToken.idToken);
-      if (result && uid.uid == result.user.uid) {
-        // Display the success popup
-        setStateModal({
-          showModal: true,
-          text: 'Login Successful',
-          title: "Welcome",
-          icon: "approved",
-        });
-        localStorage.setItem("userID", result.user.uid);
-        localStorage.setItem("idToken", idToken.idToken);
+      if (result?.user?.uid) {
         userLoggedIn(result);
       }
       else{
-        setStateModal({
-          showModal: true,
-          icon: "unapproved",
-          title: "Try Again",
-          text: `Failed to login`
-        });
+        setError("Failed to login. Please try again.");
       }
       // On successful login, you can redirect or show a success message
     } catch (err) {
-      console.log(err);
       setError(getAuthErrorMessage(err));
       setIsLoading(false); // 🔄 START LOADING
     }
     finally {
       // Ensure the Popup is dismissed after the sign-in process is complete or encounters an error
       setTimeout(() => {
-        setStateModal({'showModal': false, "text": '', "title" :'', 'icon': ''})
-        setIsLoading(false); // 🔄 START LOADING
+        setIsLoading(false);
       }, 3000); // Adjust the delay as needed
     }
   };
@@ -113,7 +91,6 @@ const Login = ({userLoggedIn}) => {
   const accountVerified = async (result) => {
     try {
       const user = result.user;
-      console.log("Verifying user:", user.providerId);
       if (!user) {
         console.error("No authenticated user found");
         return false;
@@ -123,8 +100,6 @@ const Login = ({userLoggedIn}) => {
       await user.reload();
 
       if (!user.emailVerified) {
-        console.log("User email not verified. Sending verification email...");
-
         await sendEmailVerification(user);
 
         setError(`Your email address is not verified.\n\n We've sent you a verification email. Please verify your email before logging in.`);
@@ -318,25 +293,3 @@ const Login = ({userLoggedIn}) => {
 };
 
 export default Login;
-
-const verifyUser = async (idToken) => {
-  try{
-    const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/verifyUser');
-    url.searchParams.append('idToken', idToken);
-    const res = await fetch(url,{
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-
-    const data = await res.json();
-    console.log(data)
-    return await data;
-  }
-  catch(err){
-    console.log(err);
-    throw new Error(err);
-  }
-}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { database } from "../../modules/firebase";
 import { ref, onValue, off } from "firebase/database";
+import { getUserId } from "../../modules/sessionStorage";
 
 export default function GameInfo({ myScore }) {
   const [data, setData] = useState(null);
@@ -22,15 +23,15 @@ export default function GameInfo({ myScore }) {
     onValue(dataRef, handleDataChange);
 
     return () => {
-      off(dataRef, "value", handleDataChange);
-    };
-  }, [betAmount, boardId]);
+        off(dataRef, "value", handleDataChange);
+      };
+    }, [betAmount, boardId]);
 
   useEffect(() => {
     if (data) {
       setGameInfo(data);
       const user = data.players || {};
-      const id = localStorage.getItem("userId");
+      const id = getUserId();
       setUserInfo(getDataById(user, id));
     }
   }, [data]);
@@ -39,10 +40,10 @@ export default function GameInfo({ myScore }) {
     return players?.[id] || null;
   };
 
-  const totalStake =
-    gameInfo && userInfo
-      ? Object.entries(gameInfo.players || {}).length * Number(userInfo.bet || 0)
-      : 0;
+  const totalStake = Number(gameInfo?.stake || 0);
+  const playerCount = Object.values(gameInfo?.players || {}).filter(
+    (player) => player && typeof player === "object"
+  ).length;
 
   return (
     <div className="sticky top-0 z-30 w-full border-yellow-500/20 bg-[#120202]/95 backdrop-blur-xl">
@@ -73,8 +74,8 @@ export default function GameInfo({ myScore }) {
           {gameInfo && userInfo ? (
             <div className="grid grid-cols-3 gap-3 p-2">
               <InfoCard
-                label="Score"
-                value={userInfo.score ?? 0}
+                label="Players"
+                value={playerCount}
                 accent="gold"
               />
               <InfoCard
@@ -90,7 +91,7 @@ export default function GameInfo({ myScore }) {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3 p-3">
-              <LoadingCard label="Score" />
+              <LoadingCard label="Players" />
               <LoadingCard label="Bet" />
               <LoadingCard label="Stake" />
             </div>

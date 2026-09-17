@@ -1,13 +1,13 @@
 import NavMobile from '../components/header/header'
 import Profile from '../components/userProfile/Profile';
 import { useLocation } from "react-router-dom";
+import { clearAuthSession } from '../modules/sessionStorage';
 
 export default function AccountPage({userLoggedOut, redirect}){
     const location = useLocation();
 
     const onUserLogout  = () => {
-        localStorage.removeItem("userId");
-        localStorage.removeItem("idToken");
+        clearAuthSession();
         userLoggedOut();
     };
 

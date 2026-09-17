@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const DAILY_LIMIT = 5000;     // R5,000
 const MONTHLY_LIMIT = 20000; // R20,000
@@ -13,19 +13,24 @@ export default function TopUpModal({
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     if (!open) {
       setAmount("");
       setError("");
       setLoading(false);
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     }
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [open]);
 
   const validateLimits = (value) => {
-    if (value < 10) return "Minimum deposit is R10";
+    if (!Number.isFinite(value) || value < 10) return "Minimum deposit is R10";
+    if (value > 100000) return "Maximum deposit is R100,000";
+    if (Math.round(value * 100) !== value * 100) return "Use no more than two decimal places";
 
     if (wallet.todayDeposited + value > DAILY_LIMIT) {
       return `Daily deposit limit exceeded (R${DAILY_LIMIT})`;
@@ -51,16 +56,17 @@ export default function TopUpModal({
       setLoading(true);
 
       // Timeout safety
-      const id = setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setError("Payment service took too long. Please try again.");
         setLoading(false);
       }, PAYMENT_TIMEOUT);
 
-      setTimeoutId(id);
-
       await onRedirectToPayment(value);
-    } catch {
-      setError("Unable to initiate payment.");
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setLoading(false);
+    } catch (error) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setError(error?.message || "Unable to initiate payment.");
       setLoading(false);
     }
   };
@@ -69,10 +75,10 @@ export default function TopUpModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-gradient-to-br from-[#1a0000] to-[#0a0000]
+      <div role="dialog" aria-modal="true" aria-labelledby="top-up-title" className="w-full max-w-sm bg-gradient-to-br from-[#1a0000] to-[#0a0000]
         border border-yellow-500/30 rounded-2xl shadow-2xl p-6 text-white">
 
-        <h3 className="text-center text-2xl font-extrabold text-yellow-400 mb-2">
+        <h3 id="top-up-title" className="text-center text-2xl font-extrabold text-yellow-400 mb-2">
           💳 Top Up Wallet
         </h3>
 
@@ -99,6 +105,7 @@ export default function TopUpModal({
         </div>
 
         <input
+          aria-label="Top-up amount in rand"
           type="number"
           value={amount}
           onChange={(e) => {
@@ -111,7 +118,7 @@ export default function TopUpModal({
         />
 
         {error && (
-          <p className="text-red-400 text-sm text-center mb-3">
+          <p role="alert" className="text-red-400 text-sm text-center mb-3">
             {error}
           </p>
         )}

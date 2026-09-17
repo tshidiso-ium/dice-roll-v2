@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getDatabase, ref as dbRef, onValue, set } from 'firebase/database';
-import { ClearBrowserCache } from '../utils/clearCashe';
 import { ClearMediaCache } from '../utils/clearMediaCache';
 import TopUpModal from './topUp';
+import { apiRequest } from '../../modules/apiClient';
 const STORAGE_KEY = 'dice_profile_v1';
 
 function defaultProfile() {
@@ -22,7 +21,7 @@ function defaultProfile() {
     };
 }
 
-export default function Profile({ userId = null, rollResult = null, onProfileUpdate }) {
+export default function Profile({ onProfileUpdate }) {
     const [profile, setProfile] = useState(() => {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
@@ -34,12 +33,7 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     const [editing, setEditing] = useState(false);
     const [nameDraft, setNameDraft] = useState(profile.fullName);
     const [avatarDraft, setAvatarDraft] = useState(profile.avatarUrl);
-    const [walletDraft, setWalletDraft] = useState(() => {
-        // keep draft as string for the input; stringify objects returned from Firebase
-        return profile && typeof profile.wallet === 'object' ? JSON.stringify(profile.wallet) : profile.wallet;
-    });
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
     const [showTopUp, setShowTopUp] = useState(false);
     const formatWallet = (w) => {
         if (w === null || typeof w === 'undefined' || w === '') return '—';
@@ -69,7 +63,6 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
                     });
                     // if wallet came back as object, update walletDraft so editor shows sensible value
                     if (data.wallet && typeof data.wallet === 'object') {
-                        setWalletDraft(JSON.stringify(data.wallet));
                     }
                     // keep avatarDraft in sync too
                     if (data.avatarUrl) setAvatarDraft(data.avatarUrl);
@@ -85,10 +78,6 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
     const writeProfile = async (updated) => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-            if (userId) {
-                const db = getDatabase();
-                await set(dbRef(db, `profiles/${userId}`), updated);
-            }
             if (onProfileUpdate) onProfileUpdate(updated);
         } catch (e) {
             console.error('Profile write failed', e);
@@ -102,8 +91,6 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         if (!file) return;
 
         setUploadingAvatar(true);
-        setUploadProgress(0);
-
         try {
             const formData = new FormData();
             formData.append("avatar", file);
@@ -111,25 +98,11 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
             for (const [key, value] of formData.entries()) {
                 console.log(key, value);
             }
-            const idToken = localStorage.getItem("idToken");
-            const url = new URL('https://uploader-2wtihj5jvq-uc.a.run.app/uploadProfilePicture');
-            url.searchParams.append('userId',  localStorage.getItem("userID"));
-            const res = await fetch(
-               url,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${idToken}`,
-                    },
-                    body: formData,
-                }
-            );
-
-            if (!res.ok) {
-            throw new Error("Failed to upload avatar");
-            }
-
-            const data = await res.json();
+            const {data} = await apiRequest('uploader', '/uploadProfilePicture', {
+                method: 'POST',
+                includeUserId: true,
+                body: formData,
+            });
 
             // ✅ Update UI + persist profile
             console.log("avat url: ", data.result.avatarUrl);
@@ -160,25 +133,20 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         .slice(0, 2)
         .toUpperCase();
 
-    const saveProfile = () => {
-        // try to parse walletDraft as JSON if the user entered an object
-        let walletValue = walletDraft;
-        if (typeof walletDraft === 'string') {
-            const trimmed = walletDraft.trim();
-            if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
-                try { walletValue = JSON.parse(trimmed); } catch (e) { /* leave as string */ }
-            }
-        }
-
+    const saveProfile = async () => {
         const updated = {
             ...profile,
             fullName: nameDraft || 'Player',
             avatarUrl: avatarDraft || '',
-            wallet: walletValue || ''
         };
         setProfile(updated);
-        writeProfile(updated);
-        setEditing(false);
+        try {
+            await updateUserProfile({fullName: updated.fullName, url: updated.avatarUrl});
+            await writeProfile(updated);
+            setEditing(false);
+        } catch (error) {
+            console.error('Profile update failed', {message: error?.message});
+        }
     };
 
 
@@ -324,7 +292,6 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
             key={label}
             className="bg-black/50 border border-yellow-500/20 rounded-xl p-3 shadow-inner"
         >
-            {console.log("Rendering stat: ", label, value)}
             <div className="text-xs text-gray-400">{label}</div>
             <div className="text-lg font-extrabold text-yellow-400">
             {value}
@@ -367,24 +334,15 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
         open={showTopUp}
         onClose={() => setShowTopUp(false)}
         wallet={{
-            todayDeposited: profile.wallet.todayDeposited,
-            monthDeposited: profile.wallet.monthDeposited,
+            todayDeposited: Number(profile.wallet?.todayDeposited || 0),
+            monthDeposited: Number(profile.wallet?.monthDeposited || 0),
         }}
         onRedirectToPayment={async (amount) => {
-            var idToken = localStorage.getItem("idToken");
-            const url = new URL('https://payments-2wtihj5jvq-uc.a.run.app/createTopUpPayment');
-            url.searchParams.append('idToken', idToken);
-            const res = await fetch(url, {
+            const {data} = await apiRequest('payments', '/createTopUpPayment', {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("idToken")}`,
-                },
-                body: JSON.stringify({ amount }),
+                body: {amount},
             });
-
-            const data = await res.json();
-            console.log("Res: ", data);
+            if (!data?.checkoutUrl) throw new Error('Payment provider did not return a checkout URL');
             window.location.href = data.checkoutUrl;
         }}
     />
@@ -393,48 +351,15 @@ export default function Profile({ userId = null, rollResult = null, onProfileUpd
 }
 
 const getUserProfile = async () => {
-  try{
-    const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/getUserData');
-    url.searchParams.append('userId',  localStorage.getItem("userID"));
-    const res = await fetch(url,{
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("idToken")}` 
-      }
-    });
-
-    const data = await res.json();
-    console.log(data)
-    return await data;
-  }
-  catch(err){
-    console.log(err);
-    throw new Error(err);
-  }
+  const {data} = await apiRequest('app', '/getUserData', {includeUserId: true});
+  return data;
 }
 
 const updateUserProfile = async (update) => {
-  try{
-    const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/updateUserProfile');
-    url.searchParams.append('userId',  localStorage.getItem("userID"));
-    const res = await fetch(url,{
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("idToken")}` 
-      },
-      body:  JSON.stringify({update})
-    });
-
-    const data = await res.json();
-    console.log(data)
-    return await data;
-  }
-  catch(err){
-    console.log(err);
-    throw new Error(err);
-  }
+  const {data} = await apiRequest('app', '/updateUserProfile', {
+    method: 'POST',
+    includeUserId: true,
+    body: {update},
+  });
+  return data;
 }

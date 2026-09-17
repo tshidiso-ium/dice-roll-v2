@@ -12,44 +12,39 @@ import {
 } from "react-router-dom";
 import AccountPage from "./pages/account";
 import HomePage from "./pages/home";
+import ErrorBoundary from "./components/ErrorBoundary";
+import {auth} from "./modules/firebase";
+import {onAuthStateChanged, signOut} from "firebase/auth";
+import {
+  clearAuthSession,
+  setAuthSession,
+} from "./modules/sessionStorage";
 
 function AppRoutes() {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getItems = (...keys) => {
-    const results = {};
-    keys.forEach((key) => {
-      try {
-        const value = localStorage.getItem(key);
-        results[key] = value || null;
-      } catch (error) {
-        console.error(`Error reading localStorage key: ${key}`, error);
-        results[key] = null;
-      }
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      if (user) setAuthSession({userId: user.uid});
+      else clearAuthSession();
+      setUserLoggedIn(Boolean(user));
+      setAuthReady(true);
     });
-    return results;
-  };
+  }, []);
 
   useEffect(() => {
-    const { userId, idToken } = getItems("userId", "idToken");
-    const isAuthenticated = !!userId && !!idToken;
-
-    setUserLoggedIn(isAuthenticated);
-
-    if (!isAuthenticated && location.pathname !== "/" && location.pathname !== "/register") {
+    if (authReady && !userLoggedIn && location.pathname !== "/" && location.pathname !== "/register") {
       navigate("/", { replace: true });
     }
-  }, [location.pathname, navigate]);
+  }, [authReady, location.pathname, navigate, userLoggedIn]);
 
   const onUserLogin = async (userInfo) => {
     if (userInfo.user) {
       const user = userInfo.user;
-      const idToken = userInfo._tokenResponse;
-
-      localStorage.setItem("userId", user.uid);
-      localStorage.setItem("idToken", idToken.idToken);
+      setAuthSession({ userId: user.uid });
 
       setUserLoggedIn(true);
       navigate("/home", { replace: true });
@@ -64,9 +59,9 @@ function AppRoutes() {
     }
   };
 
-  const onUserLogout = () => {
-    localStorage.removeItem("userId");
-    localStorage.removeItem("idToken");
+  const onUserLogout = async () => {
+    await signOut(auth).catch(() => undefined);
+    clearAuthSession();
     localStorage.removeItem("userEmail");
     setUserLoggedIn(false);
     navigate("/", { replace: true });
@@ -75,6 +70,10 @@ function AppRoutes() {
   const onRedirect = (href) => {
     navigate(href);
   };
+
+  if (!authReady) {
+    return <main className="flex min-h-screen items-center justify-center bg-black text-yellow-300">Loading session…</main>;
+  }
 
   return (
     <div className="h-screen bg-gradient-to-r from-black via-red-900 to-black text-yellow-300 font-mono">
@@ -112,7 +111,9 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <ErrorBoundary>
+        <AppRoutes />
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

@@ -1,0 +1,16 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "boards": {
+      "live": {
+        ".read": "auth != null && auth.token.email_verified == true"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid && auth.token.email_verified == true"
+      }
+    }
+  }
+}

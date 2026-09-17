@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import Avatar from "@mui/material/Avatar";
 import { database } from "../../modules/firebase";
 import { ref, onValue, off } from "firebase/database";
+import { getUserId } from "../../modules/sessionStorage";
 
 const Playersboard = () => {
   const [data, setData] = useState(null);
   const [players, setPlayers] = useState({});
   const [showJumpToMe, setShowJumpToMe] = useState(false);
 
-  const userId = localStorage.getItem("userId");
+  const userId = getUserId();
   const boardId = localStorage.getItem("joinedBoard");
   const betAmount = localStorage.getItem("betAmount");
 

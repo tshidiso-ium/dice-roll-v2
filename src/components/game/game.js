@@ -1,29 +1,17 @@
 import GameInfo from "../gameInfo/gameInfo";
 import Playersboard from "../players/playersBoard";
 import DiceRoller from "../dice/dice";
-import react, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { database } from '../../modules/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import PlayAgain from "../PopupVariant/popupVariant";
+import { getUserId } from "../../modules/sessionStorage";
 
 function Game ({gameConclusion}) {
-    const [myScore, setMyScore] = useState(0)
-    const handleScoreChange = (score) => {
-        console.log(score);
-        if (score === 7) {
-            setMyScore(0)
-        }else{
-        setTimeout( () => {
-            setMyScore(myScore + score) 
-        }, 1000)
-        }
-    }
-
     const [data, setData] = useState(null);
-    const [gameInfo, setGameInfo] = useState('');
-    const [userInfo, setUserInfo] = useState('');
-    var betAmount = localStorage.getItem("betAmount");
-    var boardId = localStorage.getItem("joinedBoard");
+    const shownWinnerRef = useRef(null);
+    const betAmount = localStorage.getItem("betAmount");
+    const boardId = localStorage.getItem("joinedBoard");
     const [modalState, setStateModal] = useState({
         showModal: false,
         text: "",
@@ -31,8 +19,6 @@ function Game ({gameConclusion}) {
         icon: "",
         options: false,
     });
-    const [selectOption, setSelectOption] = useState();
-
     useEffect(() => {
         // Reference to the Firebase database path you want to listen to
         const dataRef = ref(database, `boards/live/${betAmount}/${boardId}`);
@@ -49,22 +35,19 @@ function Game ({gameConclusion}) {
         return () => {
             off(dataRef, 'value', handleDataChange);
         };
-    }, []);
+    }, [betAmount, boardId]);
 
     useEffect(()=> {
+        let modalTimer;
         if (data) {
-        setGameInfo(data);
-        const user = data.players;
-        console.log(user);
-        const id = localStorage.getItem("userId");
+        const id = getUserId();
 
-        if (data.winnerIs) {
-            console.log("Winner: ", data.winnerIs);
-
+        if (data.winnerIs && shownWinnerRef.current !== data.winnerIs.playerId) {
+            shownWinnerRef.current = data.winnerIs.playerId;
             const isWinner = data.winnerIs.playerId === id;
 
             // wait 2 seconds before showing the modal
-            setTimeout(() => {
+            modalTimer = window.setTimeout(() => {
             if (isWinner) {
                 setStateModal({
                 showModal: true,
@@ -89,21 +72,21 @@ function Game ({gameConclusion}) {
             }, 2000); // 2000ms = 2 seconds
         }
         }
+        return () => {
+            if (modalTimer) window.clearTimeout(modalTimer);
+        };
     }, [data]);
 
     function handleOptionSelect(optionSelected) {
-        console.log("Option Selected: ", optionSelected);
-        console.log(optionSelected);
-        console.log("modal state: ", modalState);
         gameConclusion(optionSelected)
     }
 
     return (
         <div className="bg-gradient-to-r from-black via-red-900 to-black bg-opacity-90">         
             <PlayAgain modalState={modalState} joinRandomBoard={handleOptionSelect} />
-            <GameInfo myScore= {myScore} />
+            <GameInfo />
             <Playersboard/> 
-            <DiceRoller updateMyScore={handleScoreChange}/>
+            <DiceRoller />
         </div>
     )
 }

@@ -1,4 +1,7 @@
-export function BoardCard ({ roomId, room, countdowns, handleJoinBoard }) {
+export function BoardCard ({ roomId, room, countdowns, handleJoinBoard, joining = false }) {
+    const playerCount = Object.values(room.players || {}).filter(
+        (player) => player && typeof player === "object"
+    ).length;
     return (
     <form
         onSubmit={(e) => {
@@ -22,14 +25,14 @@ export function BoardCard ({ roomId, room, countdowns, handleJoinBoard }) {
         <p className="text-sm mb-1">
         👥 Players:{" "}
         <span className="font-bold">
-            {Object.keys(room.players || {}).length}
+            {playerCount}
         </span>
         </p>
 
         <p className="text-sm mb-1">
         💵 Current Stake:{" "}
         <span className="font-bold">
-            R{Number(room.bet || 0) * Object.keys(room.players || {}).length}
+            R{Number(room.stake || 0)}
         </span>
         </p>
 
@@ -44,14 +47,15 @@ export function BoardCard ({ roomId, room, countdowns, handleJoinBoard }) {
 
         <button
         type="submit"
-        disabled={!countdowns[roomId]}
+        disabled={!countdowns[roomId] || joining}
+        aria-busy={joining}
         className={
-            countdowns[roomId]
+            countdowns[roomId] && !joining
             ? "w-full bg-gradient-to-r from-yellow-500 to-red-600 hover:brightness-125 text-black font-bold py-2 rounded-xl shadow-md transition-transform hover:-translate-y-1"
             : "w-full bg-gray-300 text-gray-500 font-bold py-2 rounded-xl shadow-md cursor-not-allowed"
         }
         >
-        PLAY NOW
+        {joining ? "JOINING..." : "PLAY NOW"}
         </button>
 
         <div

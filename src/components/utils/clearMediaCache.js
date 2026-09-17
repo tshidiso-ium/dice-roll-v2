@@ -1,5 +1,5 @@
 // Helper to clear media-only entries from Cache Storage
-export async function ClearMediaCache({ patterns = ['\/static\/media\/','/media/','/images/'], extensions = ['.png','.jpg','.jpeg','.webp','.gif','.svg','.mp4','.webm','.ogg','.mp3','.wav'], refresh = false } = {}) {
+export async function ClearMediaCache({ patterns = ['/static/media/','/media/','/images/'], extensions = ['.png','.jpg','.jpeg','.webp','.gif','.svg','.mp4','.webm','.ogg','.mp3','.wav'], refresh = false } = {}) {
   if (!('caches' in window)) return { deleted: 0, checked: 0, removedUrls: [] };
 
   let deleted = 0;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../modules/firebase";
 import logo from "../images/dice-red.png";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import {
   VisibilityOff
 } from "@mui/icons-material";
 import RegistrationSuccessful from "../components/PopupVariant/registrationSuccessful";
+import {apiRequest} from "../modules/apiClient";
 
 const Register = ({ userRegistered }) => {
   const navigate = useNavigate(); 
@@ -49,13 +50,19 @@ const Register = ({ userRegistered }) => {
       return;
     }
     setIsLoading(true); // 🔄 START LOADING
-    var result = null;
     try {
-       result = await createUserWithEmailAndPassword(
+      const result = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+      try {
+        await createUserProfile(result.user, fullName);
+      } catch (profileError) {
+        await result.user.delete().catch(() => undefined);
+        throw profileError;
+      }
+      await sendEmailVerification(result.user);
 
       setStateModal({
         showModal: true,
@@ -63,27 +70,12 @@ const Register = ({ userRegistered }) => {
         text: "Registration successful",
         icon: "approved",
       });
-
-      localStorage.setItem("userID", result.user.uid);
+      window.setTimeout(() => userRegistered(result), 1500);
 
     } catch (err) {
-      console.log(err);
       setError(getAuthErrorMessage(err));
     } finally {
-      setTimeout(() => {
-        setStateModal({
-          showModal: false,
-          text: "",
-          title: "",
-          icon: "",
-        });
-        setIsLoading(false); // ✅ STOP LOADING
-        if (result) {
-            createUserProfile(result.user, fullName);
-            // userRegistered(result);
-        }
-      }, 3000);
-
+      setIsLoading(false);
     }
   };
 
@@ -428,32 +420,10 @@ export default Register;
 
 
 const createUserProfile = async (user, fullName) => {
-    try{
-        console.log("Creating user profile for: ", user.uid);
-        const url = new URL('https://app-2wtihj5jvq-uc.a.run.app/createUserProfile');
-        url.searchParams.append('userId', user.uid);
-        const res = await fetch(url,{
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${user.accessToken}` 
-            },
-            body: JSON.stringify({
-                email: user.email,
-                fullName: fullName
-            })
-        });
-        if(res.status === 200){
-            const data = await res.json();
-            console.log("User profile created:", data);
-        }
-        else{
-            throw new Error("Failed to create user profile");
-        }
-    }
-    catch(er){
-        console.error("Error creating user profile: ", er);
-        throw new Error("Failed to create user profile: " + er.message);
-    }
+    const {data} = await apiRequest('app', '/createUserProfile', {
+        method: 'POST',
+        includeUserId: true,
+        body: {email: user.email, fullName},
+    });
+    return data;
 }
