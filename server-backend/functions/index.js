@@ -974,12 +974,15 @@ const determinWinnerAfterSomeTime = async (event) => {
 
 const handleBoardWinner = (betAmount) => async (event) => {
   console.log('handleBoardWinner event', event);
-  const boardId = event.params.boardId;
+  const boardId = event.id;
+  console.log('handleBoardWinner boardId', boardId);
   let board = event.data.after.val();
+  console.log('handleBoardWinner board ID', board);
   if (!board || board.winnerProcessed) return;
   if (board.status === "Concluded" && board.conclusionPending !== true) return;
 
   let counts = firebaseIndex.countGamePlayerFields(board.players || {});
+  console.log('handleBoardWinner counts', counts);
   if (counts.totalPlayers <= 0 || counts.outPlayers !== counts.totalPlayers) return;
 
   const minimumEndAt = Date.parse(board.startsAt) + 10_000;
@@ -1016,10 +1019,11 @@ const winnerTriggerOptions = (betAmount) => ({
 
 // Per-board triggers avoid reading and diffing every live board on each roll.
 // Reassigning these names replaces the legacy broad triggers above.
-exports.determinBoardWinner5 = onValueWritten(
-  winnerTriggerOptions(5),
-  handleBoardWinner(5)
-);
+// exports.determinBoardWinner5 = onValueWritten(
+//   winnerTriggerOptions(5),
+//   handleBoardWinner(5)
+// );
+
 exports.determinBoardWinner10 = onValueWritten(
   winnerTriggerOptions(10),
   handleBoardWinner(10)
